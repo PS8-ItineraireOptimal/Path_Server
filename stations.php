@@ -113,9 +113,33 @@ function simplifyStations($n, &$stations)
 	}
 }
 
-function bestStations($n, $i, $j, $stations, $wantedAmount)
+function bestStations($n, $i, $j, &$stations, $wantedAmount)
 {
+	$paths = array();
+	$size = count($stations);
+	
+	if ($n == 1)
+	{
+		for ($u = 0; $u < $s; $u++)
+		{
+			$stations[$u]->d = distance($i, $stations[$u]) + distance($stations[$u], $j);
+		}
+	}
+	else if ($n == 2)
+	{
+		// TODO
+	}
+	else if ($n == 3)
+	{
+		// TODO
+	}
+	else if ($n == 4)
+	{
+		// TODO
+	}
+	
 	// TODO
+	return;
 }
 
 ?>
