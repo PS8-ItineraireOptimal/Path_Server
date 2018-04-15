@@ -23,8 +23,7 @@ class Node
 	{
 		$this->id=$n_id;
 		$this->tps_arrivee=$tps_arrivee;
-	}
-	
+	}	
 }
 
 class Arc
@@ -41,8 +40,6 @@ class Arc
 		$this->edges[1]=$noeud2;
 		$this->tps_parcours=$n_tps_parcours;
 	}
-
-
 }	
 
 class Graph
@@ -179,6 +176,99 @@ class Astar
 
 		return $this->path_steps;
 	}
+}
+
+class Dijkstra
+{
+	const C_INF = '1000000';
+
+	public $start;
+	public $arrival;
+	public $current;
+	public $openlist=array();
+	public $closelist=array();
+	public $path_steps=array();
+	public $graph;
+
+	function __construct (Graph $g, Node $start, Node $arrival)
+	{
+		$this->graph=$g;
+		$this->start=$start;
+		$this->arrival=$arrival;
+
+		foreach($this->graph->nodes as $index => $valeur)
+			$valeur->tps_depart = self::C_INF;
+	}
+
+	function update_coefficients(Node $current_node, Node $next_node)
+	{
+		$arc=$this->graph->find_arc($current_node,$next_node);
+
+		if(in_array($next_node,$this->openlist))
+		{
+			if($current_node->tps_depart + $arc->tps_parcours < $next_node->tps_depart)
+			{
+				$next_node->tps_depart = $current_node->tps_depart + $arc->tps_parcours;
+				$next_node->previous_node = $current_node;
+		    }
+		}
+		
+	}
+
+	function new_current()
+	{
+		$min_tps_depart=end($this->openlist)->tps_depart;
+		foreach($this->openlist as $index => $valeur)
+		{
+			if($valeur->tps_depart<=$min_tps_depart)
+			{	
+				$min_tps_depart=$valeur->tps_depart;
+				$j=$index;
+			}
+		}
+
+		$this->closelist[]=$this->openlist[$j];
+		unset($this->openlist[$j]);
+		return end($this->closelist);
+	}
+
+
+	function find_best_path()
+	{
+		$this->openlist=$this->graph->nodes;
+
+		$this->start->tps_depart = 0;
+
+		$this->current = $this->start;
+
+		while ($this->current != $this->arrival) 
+		{
+
+			$this->graph->find_next_nodes($this->current);
+
+			$neighbors=$this->current->next_nodes;
+
+			foreach($neighbors as $index => $valeur)
+				$this->update_coefficients($this->current,$valeur);
+			
+			$this->current=$this->new_current();
+		}
+
+		print('fin de boucle <br/>');
+		
+		$this->path_steps[]=$this->current;
+		
+		while($this->current!=$this->start)
+		{
+			$this->path_steps[]=$this->current->previous_node;
+			$this->current=$this->current->previous_node;
+		}
+
+		$this->path_steps=array_reverse($this->path_steps);
+
+		return $this->path_steps;
+	} 
+
 }
 
 ?>
