@@ -36,11 +36,10 @@ $g->find_next_nodes($n[6]);
 
 */
 
-$astar = new Astar($g,$n[1],$n[6]);
+$astar = new Astar($g,$n[3],$n[6]);
 
 $steps=$astar->find_best_path();
 
-print(count($steps));
 
 foreach($steps as $index => $valeur)
 {
