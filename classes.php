@@ -233,7 +233,7 @@ class Dijkstra
 	}
 
 
-	function find_best_path()
+	function compute_best_path()
 	{
 		$this->openlist=$this->graph->nodes;
 
@@ -241,7 +241,7 @@ class Dijkstra
 
 		$this->current = $this->start;
 
-		while ($this->current != $this->arrival) 
+		while ($this->openlist != null) 
 		{
 
 			$this->graph->find_next_nodes($this->current);
@@ -254,21 +254,32 @@ class Dijkstra
 			$this->current=$this->new_current();
 		}
 
-		print('fin de boucle <br/>');
-		
-		$this->path_steps[]=$this->current;
-		
+		print("<p>closelist : ".count($this->closelist)." noeuds graphe : ".count($this->graph->nodes)."</p>");
+
+		$this->graph->nodes=$this->closelist;
+
+		print("fin de l'algo de Dijstra <br/>");
+	}
+
+	function get_path(Node $depart = $this->start, Node $arrivee = $this->arrival)
+	{
+		$path_steps[]=$this->current;
+
 		while($this->current!=$this->start)
 		{
-			$this->path_steps[]=$this->current->previous_node;
+			$path_steps[]=$this->current->previous_node;
 			$this->current=$this->current->previous_node;
 		}
 
-		$this->path_steps=array_reverse($this->path_steps);
+		$path_steps=array_reverse($path_steps);
 
-		return $this->path_steps;
-	} 
+		return $path_steps;
+	}
 
+	function best_path_through_specific_nodes(array $nodes_list)
+	{
+
+	}
 }
 
 ?>
