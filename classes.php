@@ -187,7 +187,6 @@ class Dijkstra
 	public $current;
 	public $openlist=array();
 	public $closelist=array();
-	public $path_steps=array();
 	public $graph;
 
 	function __construct (Graph $g, Node $start, Node $arrival)
@@ -254,14 +253,12 @@ class Dijkstra
 			$this->current=$this->new_current();
 		}
 
-		print("<p>closelist : ".count($this->closelist)." noeuds graphe : ".count($this->graph->nodes)."</p>");
-
 		$this->graph->nodes=$this->closelist;
 
-		print("fin de l'algo de Dijstra <br/>");
+		print("fin de l'algo de Dijkstra <br/>");
 	}
 
-	function get_path(Node $depart = $this->start, Node $arrivee = $this->arrival)
+	function get_path(Node $depart, Node $arrivee)
 	{
 		$path_steps[]=$this->current;
 
