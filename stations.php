@@ -1,5 +1,7 @@
 <?php
 
+include_once("bdd.php");
+
 // Represent a node
 public class Node
 {
@@ -47,10 +49,8 @@ function distance($node_i, $node_j)
 }
 
 // Compute AABB from I and J with some delta
-function computeAABB($i, $j, $delta_coef)
+function computeAABB($i, $j, $delta)
 {
-	$delta = distance($i, $j) / $delta_coef;
-	
 	$aabb = new AABB();
 	$aabb->x_min = min($i->x, $j->x) - $delta;
 	$aabb->x_max = max($i->x, $j->x) + $delta;
@@ -61,13 +61,13 @@ function computeAABB($i, $j, $delta_coef)
 }
 
 // Get stations in AABB from DB
-function generateStations($i, $j, $delta_coef, $db_nodes)
+function generateStations($i, $j, $delta, $db)
 {
 	$i = 0;
 	$stations = array();
-	$aabb = computeAABB($i, $j, $delta_coef);
+	$aabb = computeAABB($i, $j, $delta);
 	
-	$req = $db_nodes->query("SELECT id, x, y, FROM nodes WHERE station==true AND (x>'$aabb->x_min' AND x<'$aabb->x_max' AND y>'$aabb->y_min' AND y<'$aabb->y_max')");
+	$req = $db->query("SELECT id, x, y, FROM nodes WHERE station==true AND (x>'$aabb->x_min' AND x<'$aabb->x_max' AND y>'$aabb->y_min' AND y<'$aabb->y_max')");
 	while ($res = $req->fetch_assoc())
 	{
 		array_push($stations, $i++, new Station($res['id'], $res['x'], $res['y'], INF);
