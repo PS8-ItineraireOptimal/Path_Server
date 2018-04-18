@@ -75,7 +75,7 @@ include('classes.php');
 
 <?php
 
-//------------Graphe test---------------
+//------------Récupération des arcs et des noeuds du graphe---------------
 
 //tableau de noeuds
 $n = array();
@@ -134,32 +134,14 @@ $stations=array($n[3],$n[9]);
 	//---------instanciation de la classe astar------------
 	$astar = new Astar($g);
 
+	$nodes_new_graph=array_merge_recursive(array($depart),$stations,array($arrivee));
+	
+
 	//calcul du chemin
-	$good=0;
-	$nStation=0;
-	$path=array();
-	$final_path=array();
-	$energy = $start_energy;
+	
 
 
-	while($good == 0)
-	{
-		if($nStation == 0)
-		{
-			$path = $astar->get_best_path($depart,$arrivee);
-			$energy = $astar->get_path_energy($path);
-			if(($start_energy - $energy) < $end_energy)
-			{
-				$nStation++;
-			}
-			else
-			{
-				$good = 1;
-				$energy = $start_energy - $energy;
-				$final_path = $path;
-			}
-		}
-	}
+	
 
 	print("Le meilleur chemin de ".$depart->id." à ".$arrivee->id." est : ");
 	foreach ($final_path as $key => $value) 
