@@ -52,8 +52,14 @@ class Arc
 
 class Graph
 {
-	public $nodes=array();
-	public $arcs=array();
+	public $nodes;
+	public $arcs;
+
+	function __construct()
+	{
+		$this->nodes=array();
+		$this->arcs=array();
+	}
 
 	function __construct($n_nodes,$n_arcs)
 	{
