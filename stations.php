@@ -1,71 +1,29 @@
 <?php
 
 include_once("bdd.php");
-
-// Represent a node
-public class Node
-{
-	public $id;
-	public $x;
-	public $y;
-	
-	public __construct($p_id, $p_x, $p_y, $p_d)
-	{
-		$this->id = $p_id;
-		$this->x = $p_x;
-		$this->y = $p_y;
-	}
-}
+include_once("geometry.php");
+include_once("classes.php");
 
 // Represent a station
 public class Station extends Node
 {
 	public $d;
 	
-	public __construct($p_id, $p_x, $p_y, $p_d)
+	function __construct($n_id, $x, $y, $d)
 	{
-		$this->id = $p_id;
-		$this->x = $p_x;
-		$this->y = $p_y;
-		$this->d = $p_d;
+		$this->id = $n_id;
+		$this->x = $x;
+		$this->y = $y;
+		$this->d = $d;
 	}
 }
 
-// Axis Aligned Bounding Box : usefull for occlusion
-public class AABB
-{
-	public $x_min;
-	public $x_max;
-	public $y_min;
-	public $y_max;
-}
-
-// Distance between two nodes
-function distance($node_i, $node_j)
-{
-	$dx = $node_i->x - $node_j->x;
-	$dy = $node_i->y - $node_j->y;
-	return sqrt(dx * dx + dy * dy);
-}
-
-// Compute AABB from I and J with some delta
-function computeAABB($i, $j, $delta)
-{
-	$aabb = new AABB();
-	$aabb->x_min = min($i->x, $j->x) - $delta;
-	$aabb->x_max = max($i->x, $j->x) + $delta;
-	$aabb->y_min = min($i->y, $j->y) + $delta;
-	$aabb->y_max = max($i->y, $j->y) - $delta;
-	
-	return $aabb;
-}
-
-// Get stations in AABB from DB
+// Get stations in the area from the database
 function generateStations($i, $j, $delta, $db)
 {
 	$i = 0;
 	$stations = array();
-	$aabb = computeAABB($i, $j, $delta);
+	$aabb = computeAABBFromNodes($i, $j, $delta);
 	
 	$req = $db->query("SELECT id, x, y, FROM nodes WHERE station==true AND (x>'$aabb->x_min' AND x<'$aabb->x_max' AND y>'$aabb->y_min' AND y<'$aabb->y_max')");
 	while ($res = $req->fetch_assoc())
@@ -77,6 +35,7 @@ function generateStations($i, $j, $delta, $db)
 }
 
 // Remove worst stations
+// If n>1, stations need to be sorted from best-to-worst distances
 function simplifyStations($n, &$stations)
 {
 	// 1 and 0 don't need simplifications
@@ -84,16 +43,6 @@ function simplifyStations($n, &$stations)
 	{
 		return;
 	}
-	
-	// Sort using the computed distance
-	usort($stations, function($a, $b)
-	{
-		if ($a->d == $b->d)
-		{
-			return 0;
-		}
-		return ($a->d < $b->d) ? -1 : 1;
-	});
 	
 	// Determine the new size
 	$wantedSize = count($stations);
@@ -113,33 +62,147 @@ function simplifyStations($n, &$stations)
 	}
 }
 
+// Get the wantedAmount best stations depending on the value of n
 function bestStations($n, $i, $j, &$stations, $wantedAmount)
 {
+	$temp_paths = array();
+	$amount = 0;
 	$paths = array();
 	$size = count($stations);
 	
 	if ($n == 1)
 	{
-		for ($u = 0; $u < $s; $u++)
+		// Case n=1 is an exception compared to the others
+		// Here we don't use temp_paths
+		// We use the computed distance holded in the station
+		// This distance will be reused to sort the stations according to their importance
+		
+		// Compute distance
+		for ($u = 0; $u < $size; $u++)
 		{
-			$stations[$u]->d = distance($i, $stations[$u]) + distance($stations[$u], $j);
+			$stations[$u]->d = distanceNN($i, $stations[$u]) + distanceNN($stations[$u], $j);
 		}
+		
+		// Sort using distance
+		usort($stations, function($a, $b)
+		{
+			if ($a->d == $b->d)
+			{
+				return 0;
+			}
+			return ($a->d < $b->d) ? -1 : 1;
+		});
+		
+		// Build paths
+		for ($a = 0; $a < $wantedAmount; $a++)
+		{
+			$p = array();
+			for ($b = 0; $b < $n; $b++)
+			{
+				array_push($p, $b, $stations[$b]->id);
+			}
+			array_push($paths, $a, $p);
+		}
+		
+		return $paths;
 	}
 	else if ($n == 2)
 	{
-		// TODO
+		// Compute distance
+		for ($u = 0; $u < $size; $u++)
+		{
+			for ($v = 0; $v < $size; $v++)
+			{
+				if ($u != $v)
+				{
+					$temp_path = array();
+					array_push($temp_path, 'd', distanceNN($i, $stations[$u]) + distanceNN($stations[$u], $stations[$v]) + distanceNN($stations[$v], $j));
+					array_push($temp_path, 0, $stations[$u]->id);
+					array_push($temp_path, 1, $stations[$v]->id);
+					array_push($temp_paths, $amount++, $temp_path);
+				}
+			}
+		}
 	}
 	else if ($n == 3)
 	{
-		// TODO
+		// Compute distance
+		for ($u = 0; $u < $size; $u++)
+		{
+			for ($v = 0; $v < $size; $v++)
+			{
+				for ($w = 0; $w < $size; $w++)
+				{
+					if ($u != $v && $u != $w && $v != $w)
+					{
+						$temp_path = array();
+						array_push($temp_path, 'd', distanceNN($i, $stations[$u]) + distanceNN($stations[$u], $stations[$v]) + distanceNN($stations[$v], $stations[$w]) + distanceNN($stations[$w], $j));
+						array_push($temp_path, 0, $stations[$u]->id);
+						array_push($temp_path, 1, $stations[$v]->id);
+						array_push($temp_path, 2, $stations[$w]->id);
+						array_push($temp_paths, $amount++, $temp_path);
+					}
+				}
+			}
+		}
 	}
 	else if ($n == 4)
 	{
-		// TODO
+		// Compute distance
+		for ($u = 0; $u < $size; $u++)
+		{
+			for ($v = 0; $v < $size; $v++)
+			{
+				for ($w = 0; $w < $size; $w++)
+				{
+					for ($x = 0; $x < $size; $x++)
+					{
+						if ($u != $v && $u != $w && $u != $x && $v != $w && $v != $x && $w != $x)
+						{
+							$temp_path = array();
+							array_push($temp_path, 'd', distanceNN($i, $stations[$u]) + distanceNN($stations[$u], $stations[$v]) + distanceNN($stations[$v], $stations[$w]) + distanceNN($stations[$w], $stations[$x]) + distanceNN($stations[$x], $j));
+							array_push($temp_path, 0, $stations[$u]->id);
+							array_push($temp_path, 1, $stations[$v]->id);
+							array_push($temp_path, 2, $stations[$w]->id);
+							array_push($temp_path, 2, $stations[$x]->id);
+							array_push($temp_paths, $amount++, $temp_path);
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		// Not possible case
+		return null;
 	}
 	
-	// TODO
-	return;
+	
+	// In case n>1 :
+		
+	// Sort using distance
+	usort($temp_paths, function($a, $b)
+	{
+		if ($a['d'] == $b['d'])
+		{
+			return 0;
+		}
+		return ($a['d'] < $b['d']) ? -1 : 1;
+	});
+	
+	// Build paths
+	for ($a = 0; $a < $wantedAmount; $a++)
+	{
+		$p = array();
+		for ($b = 0; $b < $n; $b++)
+		{
+			array_push($p, $b, $temp_paths[$a][$b]);
+		}
+		array_push($paths, $a, $p);
+	}
+	
+	return $paths;
 }
 
 ?>
