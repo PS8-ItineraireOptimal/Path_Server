@@ -31,41 +31,12 @@ public class Station extends Node
 	}
 }
 
-// Axis Aligned Bounding Box : usefull for occlusion
-public class AABB
-{
-	public $x_min;
-	public $x_max;
-	public $y_min;
-	public $y_max;
-}
-
-// Distance between two nodes
-function distance($node_i, $node_j)
-{
-	$dx = $node_i->x - $node_j->x;
-	$dy = $node_i->y - $node_j->y;
-	return sqrt(dx * dx + dy * dy);
-}
-
-// Compute AABB from I and J with some delta
-function computeAABB($i, $j, $delta)
-{
-	$aabb = new AABB();
-	$aabb->x_min = min($i->x, $j->x) - $delta;
-	$aabb->x_max = max($i->x, $j->x) + $delta;
-	$aabb->y_min = min($i->y, $j->y) + $delta;
-	$aabb->y_max = max($i->y, $j->y) - $delta;
-	
-	return $aabb;
-}
-
 // Get stations in AABB from DB
 function generateStations($i, $j, $delta, $db)
 {
 	$i = 0;
 	$stations = array();
-	$aabb = computeAABB($i, $j, $delta);
+	$aabb = computeAABBFromNodes($i, $j, $delta);
 	
 	$req = $db->query("SELECT id, x, y, FROM nodes WHERE station==true AND (x>'$aabb->x_min' AND x<'$aabb->x_max' AND y>'$aabb->y_min' AND y<'$aabb->y_max')");
 	while ($res = $req->fetch_assoc())
@@ -122,7 +93,7 @@ function bestStations($n, $i, $j, &$stations, $wantedAmount)
 	{
 		for ($u = 0; $u < $s; $u++)
 		{
-			$stations[$u]->d = distance($i, $stations[$u]) + distance($stations[$u], $j);
+			$stations[$u]->d = distanceNN($i, $stations[$u]) + distanceNN($stations[$u], $j);
 		}
 	}
 	else if ($n == 2)
