@@ -1,7 +1,7 @@
 <?php
 
 include_once("stations.php");
-include_once("algorithm.php");
+include_once("geometry.php");
 
 //////////////////////////////////////////////////////
 //
@@ -11,21 +11,14 @@ include_once("algorithm.php");
 
 $bdd = get_bdd();
 
-$iNode = new Node();
-$iNode->x = $GET['ix'];
-$iNode->y = $GET['iy'];
-
-$jNode = new Node();
-$jNode->x = $GET['jx'];
-$jNode->y = $GET['jy'];
-
 $bestAmount = 3;
+$delta = 10000; // 10km
 
+$i = findNearestNode($_GET['ix'], $_GET['iy'], $bdd, $delta);
+$j = findNearestNode($_GET['jx'], $_GET['jy'], $bdd, $delta);
+$Ei = $_GET['Ei'];
+$Ej = $_GET['Ej'];
 // TODO : Car
-// TODO : Ei
-// TODO : Ej
-
-// TODO : Conversion x/y -> Node
 
 
 //////////////////////////////////////////////////////
