@@ -1,7 +1,7 @@
 <?php
 
 // Axis Aligned Bounding Box : usefull for occlusion
-public class AABB
+class AABB
 {
 	public $x_min;
 	public $x_max;
