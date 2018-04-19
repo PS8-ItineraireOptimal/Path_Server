@@ -1,6 +1,6 @@
 <?php
 
-const speed = 50.0;
+// const speed = 50.0;
 //represent a node
 class Node
 {
@@ -11,7 +11,7 @@ class Node
 	public $tps_arrivee;
 	public $coeff_astar;
 	public $previous_node;
-	public $next_nodes=array();
+	public $next_nodes;
 	
 	/* public __construct($p_id, $p_x, $p_y, $p_d)
 	{
@@ -25,11 +25,32 @@ class Node
 		$this->id=$n_id;
 		$this->x=$x;
 		$this->y=$y;
+		$this->tps_depart=0;
+		$this->tps_arrivee=0;
+		$this->coeff_astar=0;
+		$this->previous_node=array();
+		$this->next_nodes=array();
 	}	
 
 	function calcul_coeff_astar()
 	{
 		$this->coeff_astar = $this->tps_depart + $this->tps_arrivee;
+	}
+
+	function print_node()
+	{
+		print("<p> id: ".$this->id."<br/> x:".$this->x."<br/> y:".$this->y."<br/> tps_depart:".$this->tps_depart."<br/> tps_arrivee:".$this->tps_arrivee."<br/> coeff_astar:".$this->coeff_astar);
+		print("<br/> previous nodes:");
+		foreach($this->previous_nodes as $key => $value)
+		{
+			print($value->id." -");
+		}
+		print("<br/> next nodes:");
+		foreach($this->next_nodes as $key => $value)
+		{
+			print($value->id." -");
+		}
+		print("</p>");
 	}
 }
 
@@ -47,6 +68,11 @@ class Arc
 		$this->edges[1]=$noeud2;
 		$this->tps_parcours=$n_tps_parcours;
 		$this->energie_cons=$energie_cons;
+	}
+
+	function print_arc()
+	{
+		print("<p> id:".$this->id." noeud1:".$this->edges[0]." noeud2:".$this->edges[1]." tps_parcours:".$this->tps_parcours." energie_cons:".$this->energie_cons."</p>");
 	}
 }	
 
@@ -66,7 +92,7 @@ class Graph
 	{
 		$i=0;
 		$found=0;
-		while($i<count($this->arcs) || $found!=1)
+		while($i<count($this->arcs) && $found!=1)
 		{
 			if(in_array($noeud1, $this->arcs[$i]->edges)==TRUE && in_array($noeud2, $this->arcs[$i]->edges)==TRUE)
 			{
@@ -81,7 +107,7 @@ class Graph
 
 	function find_next_nodes(Node $noeud)
 	{
-
+		$noeud->next_nodes=array();
 		for ($i=0;$i<count($this->arcs);$i++) 
 		{
 			if(in_array($noeud->id,$this->arcs[$i]->edges))
@@ -97,7 +123,7 @@ class Graph
 		$index=0;
 		$found=-1;
 
-		while($index<count($this->nodes) || $found == -1)
+		while($index<count($this->nodes) && $found == -1)
 		{
 			if($this->nodes[$index]->id == $id_noeud)
 				$found = $index;
@@ -155,15 +181,19 @@ class Astar
 			$this->current=$this->new_current();
 		}
 
-
+		$this->path_steps=array();
 		$this->path_steps[]=$this->current;
-		while($this->current!=$this->start)
+		while($this->current != $this->start)
 		{
 			$this->path_steps[]=$this->current->previous_node;
 			$this->current=$this->current->previous_node;
 		}
 
 		$this->path_steps=array_reverse($this->path_steps);
+
+		$this->closelist=array();
+		$this->openlist=array();
+		
 
 		return $this->path_steps;
 
@@ -191,7 +221,7 @@ class Astar
 
 	function calcul_tps_arrivee(Node $noeud)
 	{
-		$result=sqrt((($this->arrival->x - $noeud->x)*($this->arrival->x - $noeud->x)-($this->arrival->y - $noeud->y)*($this->arrival->y - $noeud->y)))/speed;
+		$result=sqrt((($this->arrival->x - $noeud->x)*($this->arrival->x - $noeud->x)-($this->arrival->y - $noeud->y)*($this->arrival->y - $noeud->y)));
 		return $result;
 	}
 
