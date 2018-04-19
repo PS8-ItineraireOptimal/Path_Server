@@ -123,42 +123,98 @@ $g = new Graph($n,$a);
 //---------données simulation-------------
 $depart = $n[0];
 $arrivee = $n[11];
-$start_energy = 100;
+$start_energy = 50;
 $end_energy = 10;
 
 //-------meilleures stations-----------------
-$stations=array($n[3],$n[9]);
+$stations=array($n[4],$n[10]);
 
 //---------Calcul du meilleur chemin passant par N stations---------------
 
 	//---------instanciation de la classe astar------------
 	$astar = new Astar($g);
 
-	$nodes_new_graph=array_merge_recursive(array($depart),$stations,array($arrivee));
-	
-
-	//calcul du chemin
-	
-
-
-	
+	/*$final_path=$astar->get_best_path($depart,$arrivee);
 
 	print("Le meilleur chemin de ".$depart->id." à ".$arrivee->id." est : ");
 	foreach ($final_path as $key => $value) 
 	{
 		print($value->id."->");
+	}*/
+
+	$nodes_new_graph = array_merge_recursive(array($depart),$stations,array($arrivee));
+	$new_graph = new Graph($nodes_new_graph,array());
+	$id_new_arc = 0;
+	//calcul du chemin
+	for($i=0; $i<=count($nodes_new_graph)-2;$i++)
+	{
+		if($i == 0)
+			$starting_level = $start_energy;
+		else
+			$starting_level = 100;
+
+		for ($j=$i+1; $j <= count($nodes_new_graph)-1 ; $j++) 
+		{ 
+
+			if($j == count($nodes_new_graph)-1)
+				$limit_energy = $end_energy;
+			else
+				$limit_energy = 5;
+
+			$path = $astar->get_best_path($nodes_new_graph[$i],$nodes_new_graph[$j]);
+			
+			$energy_cons = $astar->get_path_energy($path);
+
+			$travel_time = $astar->get_path_time($path);
+			if($starting_level - $energy_cons >= $limit_energy)
+			{
+				$new_arc= new Arc($id_new_arc,$nodes_new_graph[$i]->id,$nodes_new_graph[$j]->id,$travel_time,$energy_cons);
+				$new_graph->arcs[]=$new_arc;
+				$id_new_arc++;
+			}
+
+		}
 	}
 
-	print("<p> Energie restante : ".$energy." <br/> Travel time : ".$astar->get_path_time($final_path)."</p>");
+	/*foreach($new_graph->arcs as $keys => $value)
+	{
+		$value->print_arc();
+	}*/
+
+	/*foreach($new_graph->nodes as $keys => $value)
+	{
+		$value->print_node();
+	}*/
 
 
 
+	if($new_graph->find_node_in_graph($arrivee->id) != null)
+	{
 
+		$new_astar = new Astar($new_graph);
+		$final_path = $new_astar->get_best_path($depart,$arrivee);
+		print("Le meilleur chemin de ".$depart->id." à ".$arrivee->id." est : ");
+		foreach ($final_path as $key => $value) 
+		{
+			print($value->id."->");
+		}
 
+		$last_arc = array($final_path[count($final_path)-2],$arrivee);
+		$energy= 100 - $new_astar->get_path_energy($last_arc);
+		print("<p> Energie restante : ".$energy." <br/> Travel time : ".$new_astar->get_path_time($final_path)."</p>");
+	}
+	else
+	{
+		print("Il n'y a pas d'itinéraire permettant d'arriver à destination avec le niveau de batterie désiré");
+	}
 
+	/*print("Le meilleur chemin de ".$depart->id." à ".$arrivee->id." est : ");
+	foreach ($final_path as $key => $value) 
+	{
+		print($value->id."->");
+	}
 
-
-
+	print("<p> Energie restante : ".$energy." <br/> Travel time : ".$astar->get_path_time($final_path)."</p>");*/
 
 
 ?>
