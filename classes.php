@@ -61,19 +61,21 @@ class Arc
 	public $edges=array();
 	public $tps_parcours;
 	public $energie_cons;
+	public $length;
 	
-	function __construct($n_id,$noeud1,$noeud2, $n_tps_parcours, $energie_cons)
+	function __construct($n_id,$noeud1,$noeud2, $n_tps_parcours, $energie_cons, $length)
 	{
 		$this->id=$n_id;
 		$this->edges[0]=$noeud1;
 		$this->edges[1]=$noeud2;
 		$this->tps_parcours=$n_tps_parcours;
 		$this->energie_cons=$energie_cons;
+		$this->length=$length;
 	}
 
 	function print_arc()
 	{
-		print("<p> id:".$this->id." noeud1:".$this->edges[0]." noeud2:".$this->edges[1]." tps_parcours:".$this->tps_parcours." energie_cons:".$this->energie_cons."</p>");
+		print("<p> id:".$this->id." noeud1:".$this->edges[0]." noeud2:".$this->edges[1]." tps_parcours:".$this->tps_parcours." energie_cons:".$this->energie_cons." length:".$this->length."</p>");
 	}
 }	
 
@@ -89,21 +91,35 @@ class Graph
 		$this->arcs=$n_arcs;
 	}
 
-	function find_arc($noeud1,$noeud2)
+	function find_arc($noeud1,$noeud2=null)
 	{
 		$i=0;
-		$found=0;
-		while($i<count($this->arcs) && $found!=1)
-		{
-			if(in_array($noeud1, $this->arcs[$i]->edges)==TRUE && in_array($noeud2, $this->arcs[$i]->edges)==TRUE)
+
+		if($noeud2 != null)
+		{	
+			while($i<count($this->arcs))
 			{
-				$found=1;
-				$j=$i;
+				if(in_array($noeud1, $this->arcs[$i]->edges)==TRUE && in_array($noeud2, $this->arcs[$i]->edges)==TRUE)
+				{
+					return $this->arcs[$i];
+				}
+				$i=$i+1;
 			}
-			$i=$i+1;
+		}
+		else
+		{
+			while($i<count($this->arcs))
+			{
+				if(in_array($noeud1, $this->arcs[$i]->edges)==TRUE)
+				{
+					return $this->arcs[$i];
+				}
+				$i=$i+1;
+			}
 		}
 
-		return $this->arcs[$j];
+		return null;
+
 	}
 
 	function find_next_nodes(Node $noeud)
@@ -164,7 +180,7 @@ class Graph
 		
 		try
 		{
-			$req2 = $bdd->query("SELECT id_route, id_noeud1, id_noeud2, Tij_h, Eij_kWh 
+			$req2 = $bdd->query("SELECT id_route, id_noeud1, id_noeud2, Tij_h, Eij_kWh,distance 
 								FROM roads
 								WHERE id_noeud1 IN 
 								(SELECT id_noeud
@@ -185,7 +201,7 @@ class Graph
 		}
 		while ($res2 = $req2->fetch_assoc())
 		{
-			$arc=new Arc($res2["id_route"],$res2["id_noeud1"],$res2["id_noeud2"],$res2["Tij_h"],$res2["Eij_kWh"]);
+			$arc=new Arc($res2["id_route"], $res2["id_noeud1"], $res2["id_noeud2"], $res2["Tij_h"], $res2["Eij_kWh"], $res2["distance"]);
 			$this->arcs[]=$arc;
 		}
 
@@ -219,14 +235,14 @@ class Astar
 		$this->start->tps_depart=0;
 		$this->current=$this->start;
 
-		while ($this->current!=$this->arrival) 
+		while ($this->current != $this->arrival ) 
 		{
 			$this->closelist[]=$this->current;
 
 			$this->graph->find_next_nodes($this->current);
 
 			$neighbors=$this->current->next_nodes;
-			
+
 			foreach($neighbors as $index => $valeur)
 			{
 				$this->update_coefficients($this->current,$valeur);
@@ -237,6 +253,7 @@ class Astar
 
 		$this->path_steps=array();
 		$this->path_steps[]=$this->current;
+		
 		while($this->current != $this->start)
 		{
 			$this->path_steps[]=$this->current->previous_node;
@@ -261,6 +278,17 @@ class Astar
 			$energy = $energy + $this->graph->find_arc($steps[$i]->id,$steps[$i+1]->id)->energie_cons;
 		}
 		return $energy;
+	}
+
+
+	function get_path_length(array $steps)
+	{
+		$length=0;
+		for($i = 0 ; $i < count($steps)-1 ; $i++)
+		{
+			$length = $length + $this->graph->find_arc($steps[$i]->id,$steps[$i+1]->id)->length;
+		}
+		return $length;
 	}
 
 	function get_path_time(array $steps)

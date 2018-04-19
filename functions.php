@@ -33,7 +33,7 @@ function findNearestNode($x, $y, $bdd, $delta)
 
 
 //A commenter par Yves
-function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$end_energy,Graph $g,$bestStations)
+function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$end_energy,$battery_capacity,Graph $g,$bestStations=array())
 {
 	$astar = new Astar($g);
 	$nodes_new_graph = array_merge_recursive(array($depart),$bestStations,array($arrivee));
@@ -45,7 +45,7 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 		if($i == 0)
 			$starting_level = $start_energy;
 		else
-			$starting_level = 100;
+			$starting_level = $battery_capacity;
 
 		for ($j=$i+1; $j <= count($nodes_new_graph)-1 ; $j++) 
 		{ 
@@ -53,16 +53,19 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 			if($j == count($nodes_new_graph)-1)
 				$limit_energy = $end_energy;
 			else
-				$limit_energy = 5;
+				$limit_energy = 5.0/$battery_capacity;
 
 			$path = $astar->get_best_path($nodes_new_graph[$i],$nodes_new_graph[$j]);
 			
 			$energy_cons = $astar->get_path_energy($path);
 
+			$length = $astar->get_path_length($path);
+
 			$travel_time = $astar->get_path_time($path);
+
 			if($starting_level - $energy_cons >= $limit_energy)
 			{
-				$new_arc= new Arc($id_new_arc,$nodes_new_graph[$i]->id,$nodes_new_graph[$j]->id,$travel_time,$energy_cons);
+				$new_arc= new Arc($id_new_arc, $nodes_new_graph[$i]->id, $nodes_new_graph[$j]->id, $travel_time, $energy_cons, $length);
 				$new_graph->arcs[]=$new_arc;
 				$id_new_arc++;
 			}
@@ -70,29 +73,67 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 		}
 	}
 
-	if($new_graph->find_node_in_graph($arrivee->id) != null)
+	if(($new_graph->find_arc($arrivee->id) != null)  && ($new_graph->find_arc($depart->id) != null))
 	{
 
 		$new_astar = new Astar($new_graph);
 		$final_path = $new_astar->get_best_path($depart,$arrivee);
 
-		print("Le meilleur chemin de ".$depart->id." à ".$arrivee->id." est : ");
-		foreach ($final_path as $key => $value) 
-		{
-			print($value->id."->");
-		}
-
-		$last_arc = array($final_path[count($final_path)-2],$arrivee);
-		$energy= 100 - $new_astar->get_path_energy($last_arc);
-		print("<p> Energie restante : ".$energy." <br/> Travel time : ".$new_astar->get_path_time($final_path)."</p>");
-
-		return $final_path;
+		return array('astar'=>$new_astar,'path'=>$final_path);
 	}
 	else
 	{
 		print("Il n'y a pas d'itinéraire permettant d'arriver à destination avec le niveau de batterie désiré");
 		return null;
 	}
+
+}
+
+//A commenter
+function get_car_battery_capacity($car_model,$bdd)
+{
+	$req=$bdd->query("SELECT Battery FROM car WHERE Modele LIKE '".$car_model."';");
+
+	$res=$req->fetch_assoc();
+
+	return $res['Battery'];
+}
+
+function get_waypoints($path)
+{
+	$waypoints = array();
+
+	foreach ($path as $key => $value) 
+	{
+		/*// Projection de Lambert93 vers WSG84
+	 	($lat,$long)=projection($value->x, $value->y);
+
+	 	//enregistrement dans waypoints
+	 	$waypoints[]=array('lat'=>$lat,'lng'=>$long);*/
+	} 
+
+	return $waypoints;
+}
+
+function get_stats(astar $astar, $path, $battery_capacity)
+{
+	$stats = array();
+
+	//Ajout de la longueur 
+	$stats['distance'] = $astar->get_path_length($path);
+
+	//Ajout du temps de trajet (Temps de recharge dans les stations non pris en compte)
+	$stats['time'] = $astar->get_path_time($path);
+
+	//Ajout du nombre de stations
+	$stats['nbStations'] = count($path) - 2;
+
+	//Ajout de l'energie restante à l'arrivée (en pourcentage)
+	$last_arc = array($path[count($path)-2], $path[count($path)-1]);
+	$energy = ( ($battery_capacity - $astar->get_path_energy($last_arc)) / $battery_capacity) * 100;
+	$stats['energy'] = $energy;
+
+	return $stats;
 }
 
 ?>
