@@ -176,18 +176,6 @@ $stations=array($n[4],$n[10]);
 		}
 	}
 
-	/*foreach($new_graph->arcs as $keys => $value)
-	{
-		$value->print_arc();
-	}*/
-
-	/*foreach($new_graph->nodes as $keys => $value)
-	{
-		$value->print_node();
-	}*/
-
-
-
 	if($new_graph->find_node_in_graph($arrivee->id) != null)
 	{
 
@@ -207,6 +195,20 @@ $stations=array($n[4],$n[10]);
 	{
 		print("Il n'y a pas d'itinéraire permettant d'arriver à destination avec le niveau de batterie désiré");
 	}
+
+	/*foreach($new_graph->arcs as $keys => $value)
+	{
+		$value->print_arc();
+	}*/
+
+	/*foreach($new_graph->nodes as $keys => $value)
+	{
+		$value->print_node();
+	}*/
+
+
+
+	
 
 	/*print("Le meilleur chemin de ".$depart->id." à ".$arrivee->id." est : ");
 	foreach ($final_path as $key => $value) 
