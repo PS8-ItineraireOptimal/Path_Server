@@ -95,4 +95,14 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 	}
 }
 
+//A commenter
+function get_car_battery_capacity($car_model,$bdd)
+{
+	$req=$bdd->query("SELECT Battery FROM car WHERE Modele LIKE '".$car_model."';");
+
+	$res=$req->fetch_assoc();
+
+	return $res['Battery'];
+}
+
 ?>
