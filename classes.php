@@ -1,5 +1,6 @@
 <?php
-
+include('bdd.php');
+include('geometry.php');
 // const speed = 50.0;
 //represent a node
 class Node
@@ -82,7 +83,7 @@ class Graph
 	public $arcs;
 
 
-	function __construct($n_nodes,$n_arcs)
+	function __construct($n_nodes=array(),$n_arcs=array())
 	{
 		$this->nodes=$n_nodes;
 		$this->arcs=$n_arcs;
@@ -136,6 +137,59 @@ class Graph
 		else
 			return $this->nodes[$found];
 	}
+
+	function get_graph_from_bdd(Node $start_node, Node $end_node, $marge,$bdd)
+	{
+		$i=0;
+		$aabb = computeAABBFromNodes($start_node, $end_node, $marge);
+		
+		try
+		{
+			$req1 = $bdd->query("SELECT id_noeud, lon, lat
+						   FROM nodes
+						   WHERE (lon>".$aabb->x_min." AND lon<".$aabb->x_max.") AND (lat>".$aabb->y_min." AND lat<".$aabb->y_max.");");
+		}
+		catch(Exception $e)
+		{
+			echo "erreur avec la Requête";
+			die('Erreur : '.$e->getMessage());
+		}
+
+		while ($res1 = $req1->fetch_assoc())
+		{
+			$node=new Node($res1["id_noeud"],$res1["lon"],$res1["lat"]);
+			$this->nodes[]=$node;
+		}
+
+		
+		try
+		{
+			$req2 = $bdd->query("SELECT id_route, id_noeud1, id_noeud2, Tij_h, Eij_kWh 
+								FROM roads
+								WHERE id_noeud1 IN 
+								(SELECT id_noeud
+								FROM nodes
+								WHERE (lon>".$aabb->x_min." AND lon<".$aabb->x_max.") AND (lat>".$aabb->y_min." AND lat<".$aabb->y_max.")
+								)
+								AND
+								id_noeud2 IN
+								(SELECT id_noeud
+								FROM nodes
+								WHERE (lon>".$aabb->x_min." AND lon<".$aabb->x_max.") AND (lat>".$aabb->y_min." AND lat<".$aabb->y_max.")
+								);");
+		}
+		catch(Exception $e)
+		{
+			echo "erreur avec la Requête";
+			die('Erreur : '.$e->getMessage());
+		}
+		while ($res2 = $req2->fetch_assoc())
+		{
+			$arc=new Arc($res2["id_route"],$res2["id_noeud1"],$res2["id_noeud2"],$res2["Tij_h"],$res2["Eij_kWh"]);
+			$this->arcs[]=$arc;
+		}
+
+	}
 }
 
 class Astar
@@ -172,7 +226,7 @@ class Astar
 			$this->graph->find_next_nodes($this->current);
 
 			$neighbors=$this->current->next_nodes;
-
+			
 			foreach($neighbors as $index => $valeur)
 			{
 				$this->update_coefficients($this->current,$valeur);
@@ -221,7 +275,7 @@ class Astar
 
 	function calcul_tps_arrivee(Node $noeud)
 	{
-		$result=sqrt((($this->arrival->x - $noeud->x)*($this->arrival->x - $noeud->x)-($this->arrival->y - $noeud->y)*($this->arrival->y - $noeud->y)));
+		$result=sqrt((($this->arrival->x - $noeud->x)*($this->arrival->x - $noeud->x)+($this->arrival->y - $noeud->y)*($this->arrival->y - $noeud->y)));
 		return $result;
 	}
 
@@ -256,7 +310,6 @@ class Astar
 	function new_current()
 	{
 		$j = -1;
-
 		$min_coeff_astar=$this->openlist[0]->coeff_astar;
 		
 		foreach($this->openlist as $index => $valeur)
