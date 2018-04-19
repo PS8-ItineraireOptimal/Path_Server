@@ -14,12 +14,25 @@ $bdd = get_bdd();
 $bestAmount = 3;
 $delta = 10000; // 10km
 
-$i = findNearestNode($_GET['ix'], $_GET['iy'], $bdd, $delta);
-$j = findNearestNode($_GET['jx'], $_GET['jy'], $bdd, $delta);
-$Ei = $_GET['Ei'];
-$Ej = $_GET['Ej'];
-// TODO : Car
+// Projection de WSG84 vers Lambert93
+($start_x,$start_y)=projection($_GET['start_lon'], $_GET['start_lat']);
+($finish_x,$finish_y)=projection($_GET['finish_lon'], $_GET['finish_lat']);
 
+// trouver les noeuds du graph les plus proches du départ et de l'arrivée
+$start = findNearestNode($start_x, $start_y, $bdd, $delta);
+$finish = findNearestNode($finish_x, $finish_y, $bdd, $delta);
+
+//récuperer la  capacité totale de la batterie du véhicule dans la BDD
+$car_model="Zoe";
+$battery_capacity=get_car_battery_capacity($car_model,$mysqli);
+
+//Passer des énergies en pourcentages en énergies en kWh
+$Ei = $_GET['Ei']*$battery_capacity;
+$Ej = $_GET['Ej']*$battery_capacity;
+
+//Récupérer les noeuds et arcs du graphe dans la BDD
+$g = new Graph();
+$g->get_graph_from_bdd($start,$finish,$delta,$mysqli);
 
 //////////////////////////////////////////////////////
 //
@@ -28,34 +41,51 @@ $Ej = $_GET['Ej'];
 //////////////////////////////////////////////////////
 
 // Calcul avec 0 stations
-$path = algorithm($i, $j, $Ei, $Ej);
-if ($path->isValid())
-{
-	$path->output();
-}
 
-// Generation de la carte des stations dans le secteur restreint
-$stations = generateStations($i, $j, 10000, $bdd);
-
-// Tests avec des stations
-for ($n = 1; $n <= 4; $n++)
+$result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $g);
+if($result != null)
 {
-	// Calcul uniquement sur les meilleures stations 
-	// Réduit considérablement le nombre de calcul pour n > 1
-	simplifyStations($n, $stations);
-	
-	// Determine les bestAmount meilleurs chemins possibles
-	$bestStations = bestStations($n, $i, $j, $stations, $bestAmount);
-	
-	// TODO : A changer ici mais c'est pour que vous compreniez l'idéee
-	
-	// Calcul avec n stations
-	$path = algorithm($i, $j, $Ei, $Ej, $bestStations);
-	if ($path->isValid())
+	print("Le meilleur chemin");
+	foreach ($result['path'] as $key => $value) 
 	{
-		$path->output();
-		break;
+		print($value->id."->");
 	}
+
+	$last_arc = array($result['path'][count($final_path)-2],$arrivee);
+	$energy= 100 - $result['astar']->get_path_energy($last_arc);
+	print("<p> Energie restante : ".$energy." <br/> Travel time : ".$result['astar']->get_path_time($final_path)."</p>");	
 }
+else
+{
+
+	// Generation de la carte des stations dans le secteur restreint
+	$stations = generateStations($i, $j, 10000, $mysqli);
+
+	// Tests avec des stations
+
+	print("<p>test avec plusieurs stations</p>");
+
+	/*for ($n = 1; $n <= 4; $n++)
+	{
+		// Calcul uniquement sur les meilleures stations 
+		// Réduit considérablement le nombre de calcul pour n > 1
+		simplifyStations($n, $stations);
+		
+		// Determine les bestAmount meilleurs chemins possibles
+		$bestStations = bestStations($n, $i, $j, $stations, $bestAmount);
+		
+		// TODO : A changer ici mais c'est pour que vous compreniez l'idéee
+		
+		// Calcul avec n stations
+		$path = algorithm($i, $j, $Ei, $Ej, $bestStations);
+		if ($path->isValid())
+		{
+			$path->output();
+			break;
+		}
+	}*/
+}
+
+
 
 ?>
