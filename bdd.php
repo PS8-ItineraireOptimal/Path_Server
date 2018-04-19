@@ -19,10 +19,10 @@ if ($mysqli->connect_errno)
 	echo 'error bdd';
 }
 
-function get_bdd()
+/*function get_bdd()
 {
 	global $mysqli;
 	return $mysqli;
-}
+}*/
 
 ?>
