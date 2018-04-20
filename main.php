@@ -51,13 +51,6 @@ $g->get_graph_from_bdd($start,$finish,$delta,$bdd);
 $result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $g);
 if($result != null)
 {
-	print("Le meilleur chemin");
-	foreach ($result['path'] as $key => $value) 
-	{
-		print($value->id."->");
-	}
-	print("<br/>");
-
 	$waypoints = get_waypoints($result['path']);
 	$stats = get_stats($result['astar'], $result['path'], $battery_capacity);
 }
