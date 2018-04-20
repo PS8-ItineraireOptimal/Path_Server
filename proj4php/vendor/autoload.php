@@ -1,5 +1,7 @@
 <?php
+
 namespace proj4php;
+
 spl_autoload_register(function($class) {
 		if (stripos($class, __NAMESPACE__) === 0)
 		{

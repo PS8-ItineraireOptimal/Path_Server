@@ -1,9 +1,3 @@
-
-# source
-
-https://github.com/proj4php/proj4php
-
-
 [![Build Status](https://img.shields.io/travis/proj4php/proj4php/master.svg)](https://travis-ci.org/proj4php/proj4php)
 [![Latest Stable Version](https://img.shields.io/packagist/dt/proj4php/proj4php.svg)](https://packagist.org/packages/proj4php/proj4php)
 
