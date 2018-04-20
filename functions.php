@@ -27,12 +27,8 @@ function findNearestNode($x, $y, $bdd, $delta)
 	}
 	else
 	{
-		var_dump(2);
-		var_dump($req->num_rows);
-		
-		return null;
 		// If no node found, extend the AABB area -> Should (very) rarely happend
-		//return findNearestNode($x, $y, $bdd, 2 * $delta);
+		return findNearestNode($x, $y, $bdd, 2 * $delta);
 	}
 }
 

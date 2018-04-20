@@ -24,4 +24,6 @@ $finish = findNearestNode($finish_x, $finish_y, $bdd, $delta);
 
 echo $start->id . " " . $finish->id;
 
+
+
 ?>
