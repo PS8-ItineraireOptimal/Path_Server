@@ -7,14 +7,9 @@
 //////////////////////////////////////////////////////
 
 // Login
-/*$db_host = "78.113.61.31";
+$db_host = "78.113.61.31";
 $db_user = "ps8user";
 $db_pass = "projets8";
-$db_base = "projet_S8";*/
-
-$db_host = "127.0.0.1";
-$db_user = "root";
-$db_pass = "root";
 $db_base = "projet_S8";
 
 // Connexion
@@ -24,10 +19,10 @@ if ($mysqli->connect_errno)
 	echo 'error bdd';
 }
 
-/*function get_bdd()
+function get_bdd()
 {
 	global $mysqli;
 	return $mysqli;
-}*/
+}
 
 ?>
