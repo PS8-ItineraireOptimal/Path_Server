@@ -23,6 +23,7 @@ $project_start_node = from_WGS_to_L93($_POST['ilng'],$_POST['ilat']);
 $start_x = $project_start_node->toArray()[0];
 $start_y = $project_start_node->toArray()[1];
 
+
 $project_finish_node = from_WGS_to_L93($_POST['jlng'],$_POST['jlat']);
 $finish_x = $project_finish_node->toArray()[0];
 $finish_y = $project_finish_node->toArray()[1];
@@ -48,10 +49,9 @@ $g->get_graph_from_bdd($start,$finish,$delta,$bdd);
 // Itinéraire
 //
 //////////////////////////////////////////////////////
-
 // Calcul avec 0 stations
-
 $result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $g);
+
 if($result != null)
 {
 	$waypoints = get_waypoints($result['path']);
