@@ -10,9 +10,7 @@ function findNearestNode($x, $y, $bdd, $delta)
 	$distance = INF;
 	$aabb = computeAABBFromCenter($x, $y, $delta);
 	
-	$req = $bdd->query("SELECT id_noeud, lon, lat
-						FROM nodes 
-						WHERE (lon>".$aabb->x_min." AND lon<".$aabb->x_max." AND lat>".$aabb->y_min." AND lat<".$aabb->y_max.")");
+	$req = $bdd->query("SELECT id_noeud, lon, lat FROM nodes WHERE (lon>'$aabb->x_min' AND lon<'$aabb->x_max' AND lat>'$aabb->y_min' AND lat<'$aabb->y_max')");
 	while ($res = $req->fetch_assoc())
 	{
 		$d = distanceCC($x, $y, $res['lon'], $res['lat']);
