@@ -2,6 +2,7 @@
 
 include_once("classes.php");
 include_once("geometry.php");
+include_once ('change_projection.php');
 
 function findNearestNode($x, $y, $bdd, $delta)
 {
@@ -105,11 +106,14 @@ function get_waypoints($path)
 
 	foreach ($path as $key => $value) 
 	{
-		/*// Projection de Lambert93 vers WSG84
-	 	($lat,$long)=projection($value->x, $value->y);
+		//projection de L93 vers WGS84
+	 	$projection = from_L93_to_WGS($value->x,$value->y);
+		$lon = $projection->toArray()[0];
+		$lat = $projection->toArray()[1];
 
-	 	//enregistrement dans waypoints
-	 	$waypoints[]=array('lat'=>$lat,'lng'=>$long);*/
+		//enregistrement de la latitude et de la longitude
+		$waypoints[]=array('lat'=>$lat,'lng'=>$lon);
+
 	} 
 
 	return $waypoints;
