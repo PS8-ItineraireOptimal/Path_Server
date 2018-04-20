@@ -25,8 +25,8 @@ $finish_x = $project_finish_node->toArray()[0];
 $finish_y = $project_finish_node->toArray()[1];
 
 // trouver les noeuds du graph les plus proches du départ et de l'arrivée
-$start = findNearestNode($start_x, $start_y, $bdd, $delta);
-$finish = findNearestNode($finish_x, $finish_y, $bdd, $delta);
+$start = findNearestNode($start_x, $start_y, $mysqli, $delta);
+$finish = findNearestNode($finish_x, $finish_y, $mysqli, $delta);
 
 //récuperer la  capacité totale de la batterie du véhicule dans la BDD
 $car_model=$_POST['VE'];
@@ -56,40 +56,43 @@ if($result != null)
 	{
 		print($value->id."->");
 	}
+	print("<br/>");
 
-	$last_arc = array($result['path'][count($final_path)-2],$arrivee);
-	$energy= 100 - $result['astar']->get_path_energy($last_arc);
-	print("<p> Energie restante : ".$energy." <br/> Travel time : ".$result['astar']->get_path_time($final_path)."</p>");	
+	$waypoints = get_waypoints($result['path']);
+	$stats = get_stats($result['astar'], $result['path'], $battery_capacity);
 }
 else
 {
 
 	// Generation de la carte des stations dans le secteur restreint
-	$stations = generateStations($i, $j, 10000, $mysqli);
+	//$stations = generateStations($i, $j, 10000, $mysqli);
 
 	// Tests avec des stations
 
 	print("<p>test avec plusieurs stations</p>");
-
-	/*for ($n = 1; $n <= 4; $n++)
+/*
+	for ($n = 1; $n <= 4; $n++)
 	{
-		// Calcul uniquement sur les meilleures stations 
-		// Réduit considérablement le nombre de calcul pour n > 1
-		simplifyStations($n, $stations);
+		// // Calcul uniquement sur les meilleures stations 
+		// // Réduit considérablement le nombre de calcul pour n > 1
+		// simplifyStations($n, $stations);
 		
-		// Determine les bestAmount meilleurs chemins possibles
-		$bestStations = bestStations($n, $i, $j, $stations, $bestAmount);
+		// // Determine les bestAmount meilleurs chemins possibles
+		// $bestStations = bestStations($n, $i, $j, $stations, $bestAmount);
 		
-		// TODO : A changer ici mais c'est pour que vous compreniez l'idéee
+		// // TODO : A changer ici mais c'est pour que vous compreniez l'idéee
 		
-		// Calcul avec n stations
-		$path = algorithm($i, $j, $Ei, $Ej, $bestStations);
-		if ($path->isValid())
-		{
-			$path->output();
-			break;
-		}
+		// // Calcul avec n stations
+		// $path = algorithm($i, $j, $Ei, $Ej, $bestStations);
+		// if ($path->isValid())
+		// {
+		// 	$path->output();
+		// 	break;
+		// }
 	}*/
+
+	$waypoints = array();
+	$stats = array();
 }
 
 
