@@ -36,8 +36,8 @@ function computeAABBFromNodes($i, $j, $delta)
 	$aabb = new AABB();
 	$aabb->x_min = min($i->x, $j->x) - $delta;
 	$aabb->x_max = max($i->x, $j->x) + $delta;
-	$aabb->y_min = min($i->y, $j->y) + $delta;
-	$aabb->y_max = max($i->y, $j->y) - $delta;
+	$aabb->y_min = min($i->y, $j->y) - $delta;
+	$aabb->y_max = max($i->y, $j->y) + $delta;
 	return $aabb;
 }
 
