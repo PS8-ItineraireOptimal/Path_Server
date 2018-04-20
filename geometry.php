@@ -26,7 +26,7 @@ function distanceNC($node, $x, $y)
 // Distance between two couples of coordinates
 function distanceCC($x1, $y1, $x2, $y2)
 {
-	return sqrt($x1 * $x2 + $y1 * $y2);
+	return sqrt(($x1-$x2)*($x1-$x2) + ($y1-$y2)*($y1-$y2));
 }
 
 // Compute AABB from I and J with some delta
