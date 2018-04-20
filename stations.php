@@ -5,7 +5,7 @@ include_once("geometry.php");
 include_once("classes.php");
 
 // Represent a station
-public class Station extends Node
+class Station extends Node
 {
 	public $d;
 	
@@ -19,16 +19,15 @@ public class Station extends Node
 }
 
 // Get stations in the area from the database
-function generateStations($i, $j, $delta, $db)
+function generateStations(Node $i, Node $j, $delta, $db)
 {
-	$i = 0;
 	$stations = array();
 	$aabb = computeAABBFromNodes($i, $j, $delta);
 	
-	$req = $db->query("SELECT id, x, y, FROM nodes WHERE station==true AND (x>'$aabb->x_min' AND x<'$aabb->x_max' AND y>'$aabb->y_min' AND y<'$aabb->y_max')");
+	$req = $db->query("SELECT id_noeud, lon, lat FROM nodes WHERE temps_charge_h IS NOT NULL AND (lon>'$aabb->x_min' AND lon<'$aabb->x_max' AND lat>'$aabb->y_min' AND lat<'$aabb->y_max')");
 	while ($res = $req->fetch_assoc())
 	{
-		array_push($stations, $i++, new Station($res['id'], $res['x'], $res['y'], INF);
+		array_push($stations, new Station($res['id_noeud'], $res['lon'], $res['lat'], INF));
 	}
 	
 	return $stations;
@@ -94,14 +93,10 @@ function bestStations($n, $i, $j, &$stations, $wantedAmount)
 		});
 		
 		// Build paths
-		for ($a = 0; $a < $wantedAmount; $a++)
+		$finalSize = min($wantedAmount, $size);
+		for ($a = 0; $a < $finalSize; $a++)
 		{
-			$p = array();
-			for ($b = 0; $b < $n; $b++)
-			{
-				array_push($p, $b, $stations[$b]->id);
-			}
-			array_push($paths, $a, $p);
+			$paths[$a][0] = $stations[$a]->id;
 		}
 		
 		return $paths;
@@ -116,10 +111,10 @@ function bestStations($n, $i, $j, &$stations, $wantedAmount)
 				if ($u != $v)
 				{
 					$temp_path = array();
-					array_push($temp_path, 'd', distanceNN($i, $stations[$u]) + distanceNN($stations[$u], $stations[$v]) + distanceNN($stations[$v], $j));
-					array_push($temp_path, 0, $stations[$u]->id);
-					array_push($temp_path, 1, $stations[$v]->id);
-					array_push($temp_paths, $amount++, $temp_path);
+					$temp_path['d'] = distanceNN($i, $stations[$u]) + distanceNN($stations[$u], $stations[$v]) + distanceNN($stations[$v], $j);
+					$temp_path[0] = $stations[$u]->id;
+					$temp_path[1] = $stations[$v]->id;
+					$temp_paths[$amount++] = $temp_path;
 				}
 			}
 		}
@@ -136,11 +131,11 @@ function bestStations($n, $i, $j, &$stations, $wantedAmount)
 					if ($u != $v && $u != $w && $v != $w)
 					{
 						$temp_path = array();
-						array_push($temp_path, 'd', distanceNN($i, $stations[$u]) + distanceNN($stations[$u], $stations[$v]) + distanceNN($stations[$v], $stations[$w]) + distanceNN($stations[$w], $j));
-						array_push($temp_path, 0, $stations[$u]->id);
-						array_push($temp_path, 1, $stations[$v]->id);
-						array_push($temp_path, 2, $stations[$w]->id);
-						array_push($temp_paths, $amount++, $temp_path);
+						$temp_path['d'] = distanceNN($i, $stations[$u]) + distanceNN($stations[$u], $stations[$v]) + distanceNN($stations[$v], $stations[$w]) + distanceNN($stations[$w], $j);
+						$temp_path[0] = $stations[$u]->id;
+						$temp_path[1] = $stations[$v]->id;
+						$temp_path[2] = $stations[$w]->id;
+						$temp_paths[$amount++] = $temp_path;
 					}
 				}
 			}
@@ -160,12 +155,12 @@ function bestStations($n, $i, $j, &$stations, $wantedAmount)
 						if ($u != $v && $u != $w && $u != $x && $v != $w && $v != $x && $w != $x)
 						{
 							$temp_path = array();
-							array_push($temp_path, 'd', distanceNN($i, $stations[$u]) + distanceNN($stations[$u], $stations[$v]) + distanceNN($stations[$v], $stations[$w]) + distanceNN($stations[$w], $stations[$x]) + distanceNN($stations[$x], $j));
-							array_push($temp_path, 0, $stations[$u]->id);
-							array_push($temp_path, 1, $stations[$v]->id);
-							array_push($temp_path, 2, $stations[$w]->id);
-							array_push($temp_path, 2, $stations[$x]->id);
-							array_push($temp_paths, $amount++, $temp_path);
+							$temp_path['d'] = distanceNN($i, $stations[$u]) + distanceNN($stations[$u], $stations[$v]) + distanceNN($stations[$v], $stations[$w]) + distanceNN($stations[$w], $stations[$x]) + distanceNN($stations[$x], $j);
+							$temp_path[0] = $stations[$u]->id;
+							$temp_path[1] = $stations[$v]->id;
+							$temp_path[2] = $stations[$w]->id;
+							$temp_path[3] = $stations[$x]->id;
+							$temp_paths[$amount++] = $temp_path;
 						}
 					}
 				}
@@ -192,14 +187,15 @@ function bestStations($n, $i, $j, &$stations, $wantedAmount)
 	});
 	
 	// Build paths
-	for ($a = 0; $a < $wantedAmount; $a++)
+	$finalSize = min($wantedAmount, $size);
+	for ($a = 0; $a < $finalSize; $a++)
 	{
 		$p = array();
 		for ($b = 0; $b < $n; $b++)
 		{
-			array_push($p, $b, $temp_paths[$a][$b]);
+			array_push($p, $temp_paths[$a][$b]);
 		}
-		array_push($paths, $a, $p);
+		array_push($paths, $p);
 	}
 	
 	return $paths;
