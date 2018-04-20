@@ -1,10 +1,10 @@
 <?php
 
-include_once("bdd.php");
-include_once("geometry.php");
-include_once("functions.php");
-include_once('change_projection.php');
-include_once("stations.php");
+include_once("../bdd.php");
+include_once("../geometry.php");
+include_once("../functions.php");
+include_once('../change_projection.php');
+include_once("../stations.php");
 
 $bdd = get_bdd();
 $bestAmount = 3;
