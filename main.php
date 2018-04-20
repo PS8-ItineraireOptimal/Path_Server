@@ -10,17 +10,17 @@ include_once('change_projection.php');
 //
 //////////////////////////////////////////////////////
 
-$bdd = get_bdd();
+//$bdd = get_bdd();
 
 $bestAmount = 3;
 $delta = 10000; // 10km
 
 // Projection de WSG84 vers Lambert93
-$project_start_node = from_WGS_to_L93($_GET['start_lon'],$_GET['start_lat']);
+$project_start_node = from_WGS_to_L93($_POST['ilng'],$_POST['ilat']);
 $start_x = $project_start_node->toArray()[0];
 $start_y = $project_start_node->toArray()[1];
 
-$project_finish_node = from_WGS_to_L93($_GET['finish_lon'],$_GET['finish_lat']);
+$project_finish_node = from_WGS_to_L93($_POST['jlng'],$_POST['jlat']);
 $finish_x = $project_finish_node->toArray()[0];
 $finish_y = $project_finish_node->toArray()[1];
 
@@ -29,12 +29,12 @@ $start = findNearestNode($start_x, $start_y, $bdd, $delta);
 $finish = findNearestNode($finish_x, $finish_y, $bdd, $delta);
 
 //récuperer la  capacité totale de la batterie du véhicule dans la BDD
-$car_model="Zoe";
+$car_model=$_POST['VE'];
 $battery_capacity=get_car_battery_capacity($car_model,$mysqli);
 
 //Passer des énergies en pourcentages en énergies en kWh
-$Ei = $_GET['Ei']*$battery_capacity;
-$Ej = $_GET['Ej']*$battery_capacity;
+$Ei = $_POST['startEnergyInName']*$battery_capacity;
+$Ej = $_POST['endEnergyInName']*$battery_capacity;
 
 //Récupérer les noeuds et arcs du graphe dans la BDD
 $g = new Graph();
