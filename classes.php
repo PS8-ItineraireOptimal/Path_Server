@@ -158,7 +158,6 @@ class Graph
 	{
 		$i=0;
 		$aabb = computeAABBFromNodes($start_node, $end_node, $marge);
-		
 		try
 		{
 			$req1 = $bdd->query("SELECT id_noeud, lon, lat
@@ -173,7 +172,7 @@ class Graph
 
 		while ($res1 = $req1->fetch_assoc())
 		{
-			$node=new Node($res1["id_noeud"],$res1["lon"],$res1["lat"]);
+			$node=new Node(intval($res1["id_noeud"]),intval($res1["lon"]),intval($res1["lat"]));
 			$this->nodes[]=$node;
 		}
 
@@ -235,7 +234,7 @@ class Astar
 		$this->start->tps_depart=0;
 		$this->current=$this->start;
 
-		while ($this->current != $this->arrival ) 
+		while ($this->current->id != $this->arrival->id ) 
 		{
 			$this->closelist[]=$this->current;
 
