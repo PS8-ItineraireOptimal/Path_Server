@@ -10,7 +10,7 @@ include_once('change_projection.php');
 //
 //////////////////////////////////////////////////////
 
-//$bdd = get_bdd();
+$bdd = get_bdd();
 
 $bestAmount = 3;
 $delta = 10000; // 10km
@@ -25,12 +25,12 @@ $finish_x = $project_finish_node->toArray()[0];
 $finish_y = $project_finish_node->toArray()[1];
 
 // trouver les noeuds du graph les plus proches du départ et de l'arrivée
-$start = findNearestNode($start_x, $start_y, $mysqli, $delta);
-$finish = findNearestNode($finish_x, $finish_y, $mysqli, $delta);
+$start = findNearestNode($start_x, $start_y, $bdd, $delta);
+$finish = findNearestNode($finish_x, $finish_y, $bdd, $delta);
 
 //récuperer la  capacité totale de la batterie du véhicule dans la BDD
 $car_model=$_POST['VE'];
-$battery_capacity=get_car_battery_capacity($car_model,$mysqli);
+$battery_capacity=get_car_battery_capacity($car_model,$bdd);
 
 //Passer des énergies en pourcentages en énergies en kWh
 $Ei = $_POST['startEnergyInName']*$battery_capacity;
@@ -38,7 +38,7 @@ $Ej = $_POST['endEnergyInName']*$battery_capacity;
 
 //Récupérer les noeuds et arcs du graphe dans la BDD
 $g = new Graph();
-$g->get_graph_from_bdd($start,$finish,$delta,$mysqli);
+$g->get_graph_from_bdd($start,$finish,$delta,$bdd);
 
 //////////////////////////////////////////////////////
 //
@@ -65,7 +65,7 @@ else
 {
 
 	// Generation de la carte des stations dans le secteur restreint
-	//$stations = generateStations($i, $j, 10000, $mysqli);
+	//$stations = generateStations($i, $j, 10000, $bdd);
 
 	// Tests avec des stations
 
