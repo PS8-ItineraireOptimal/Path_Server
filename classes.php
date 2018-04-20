@@ -1,6 +1,6 @@
 <?php
-include('bdd.php');
-include('geometry.php');
+include_once('bdd.php');
+include_once('geometry.php');
 // const speed = 50.0;
 //represent a node
 class Node
