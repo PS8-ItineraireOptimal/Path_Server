@@ -39,6 +39,7 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 	$astar = new Astar($g);
 	$nodes_new_graph = array_merge_recursive(array($depart),$bestStations,array($arrivee));
 	$new_graph = new Graph($nodes_new_graph,array());
+		
 	$id_new_arc = 0;
 	//calcul du chemin
 	for($i=0; $i<=count($nodes_new_graph)-2;$i++)
@@ -84,7 +85,6 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 	}
 	else
 	{
-		print("Il n'y a pas d'itinéraire permettant d'arriver à destination avec le niveau de batterie désiré");
 		return null;
 	}
 

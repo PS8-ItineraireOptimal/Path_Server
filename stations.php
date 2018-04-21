@@ -42,16 +42,16 @@ function simplifyStations($n, &$stations)
 	{
 		return;
 	}
-	
+
 	// Determine the new size
 	$wantedSize = count($stations);
 	if ($n == 2)
 	{
-		$wantedSize /= 100;
+		$wantedSize /= 2;
 	}
 	if ($n == 3)
 	{
-		$wantedSize /= 10;
+		$wantedSize /= 2;
 	}
 	
 	// Remove the worst stations

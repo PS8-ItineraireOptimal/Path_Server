@@ -1,6 +1,6 @@
 <?php
 
-//include_once("stations.php");
+include_once("stations.php");
 include_once('bdd.php');
 include_once("classes.php");
 include_once("functions.php");
@@ -52,6 +52,9 @@ $g->get_graph_from_bdd($start,$finish,$delta,$bdd);
 // Calcul avec 0 stations
 $result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $g);
 
+$waypoints = array();
+$stats = array();
+
 if($result != null)
 {
 	$waypoints = get_waypoints($result['path']);
@@ -59,36 +62,51 @@ if($result != null)
 }
 else
 {
+	$stations = generateStations($start, $finish, $delta, $bdd);
 
-	// Generation de la carte des stations dans le secteur restreint
-	//$stations = generateStations($i, $j, 10000, $bdd);
-
-	// Tests avec des stations
-
-	print("<p>test avec plusieurs stations</p>");
-/*
 	for ($n = 1; $n <= 4; $n++)
 	{
-		// // Calcul uniquement sur les meilleures stations 
-		// // Réduit considérablement le nombre de calcul pour n > 1
-		// simplifyStations($n, $stations);
-		
-		// // Determine les bestAmount meilleurs chemins possibles
-		// $bestStations = bestStations($n, $i, $j, $stations, $bestAmount);
-		
-		// // TODO : A changer ici mais c'est pour que vous compreniez l'idéee
-		
-		// // Calcul avec n stations
-		// $path = algorithm($i, $j, $Ei, $Ej, $bestStations);
-		// if ($path->isValid())
-		// {
-		// 	$path->output();
-		// 	break;
-		// }
-	}*/
+		//simplifyStations();
 
-	$waypoints = array();
-	$stats = array();
+		$bestStations = bestStations($n, $start, $finish, $stations, $bestAmount);
+		$nbPathsStations = count($bestStations);
+		$bestPaths = array();
+
+		// On calcule tous les chemins
+		for ($i = 0; $i < $nbPathsStations; $i++)
+		{
+			$nodeStations=array();
+			foreach ($bestStations[0] as $key => $value) 
+			{
+				$nodeStations[] = $g->find_node_in_graph($value);
+			}
+
+			$bestPaths[$i] = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $g, $nodeStations);
+			if ($bestPaths[$i] == null)
+			{
+				unset($bestPaths[$i]);
+			}
+		}
+
+		$bestPaths = array_values($bestPaths);
+		$nbValidPaths = count($bestPaths);
+
+		if ($nbValidPaths > 0)
+		{
+			// On tri selon le temps
+			usort($bestPaths, function($a, $b)
+			{
+				if ($a['astar']->get_path_time($a['path']) == $b['astar']->get_path_time($b['path']))
+				{
+					return 0;
+				}
+				return ($a['astar']->get_path_time($a['path']) < $b['astar']->get_path_time($b['path'])) ? -1 : 1;
+			});
+
+			$waypoints = get_waypoints($bestStations[0]['path']);
+			$stats = get_stats($bestStations[0]['astar'], $bestStations[0]['path'], $battery_capacity);
+		}
+	}
 }
 
 

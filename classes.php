@@ -241,7 +241,6 @@ class Astar
 			$this->graph->find_next_nodes($this->current);
 
 			$neighbors=$this->current->next_nodes;
-
 			foreach($neighbors as $index => $valeur)
 			{
 				$this->update_coefficients($this->current,$valeur);

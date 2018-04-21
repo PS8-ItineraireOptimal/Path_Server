@@ -6,7 +6,7 @@
 //
 //////////////////////////////////////////////////////
 
-// Login
+// Login à la bdd distante
 $db_host = "78.113.61.31";
 $db_user = "ps8user";
 $db_pass = "projets8";
