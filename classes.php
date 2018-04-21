@@ -139,7 +139,7 @@ class Graph
 	{
 		$index=0;
 
-		while($index<count($this->nodes) && $found == -1)
+		while($index<count($this->nodes))
 		{
 			if($this->nodes[$index]->id == $id_noeud)
 				return $this->nodes[$index];
@@ -224,20 +224,27 @@ class Astar
 		$this->start=$depart;
 		$this->arrival=$arrivee;
 
-		foreach($this->graph->nodes as $index => $valeur)
-			$this->calcul_tps_arrivee($valeur);
-
 		$this->start->tps_depart=0;
 		$this->current=$this->start;
 
+		$this->current->tps_arrivee = $this->calcul_tps_arrivee($this->current);
+		$this->current->calcul_coeff_astar($this->current);
+
+		$this->closelist=array();
+		$this->openlist=array("id_noeud"=>array(),"noeud"=>array());
+
 		while ($this->current->id != $this->arrival->id ) 
 		{
-			$this->closelist[]=$this->current;
+			$this->closelist[]=$this->current->id;
 
 			$this->graph->find_next_nodes($this->current);
 
 			$neighbors=$this->current->next_nodes;
+
+			//debug
 			print("<p>id current:".$this->current->id." neighbors:".count($neighbors)." </p>");
+			//fin debug
+
 			foreach($neighbors as $index => $valeur)
 			{
 				$this->update_coefficients($this->current,$valeur);
@@ -256,11 +263,7 @@ class Astar
 		}
 
 		$this->path_steps=array_reverse($this->path_steps);
-
-		$this->closelist=array();
-		$this->openlist=array();
 		
-
 		return $this->path_steps;
 
 	}
@@ -307,25 +310,29 @@ class Astar
 
 		$arc=$this->graph->find_arc($current_node->id,$next_node->id);
 
-		if(in_array($next_node,$this->openlist)==TRUE && in_array($next_node,$this->closelist)==FALSE)
+		if(in_array($next_node->id,$this->openlist["id_noeud"])==TRUE && in_array($next_node->id,$this->closelist)==FALSE)
 		{
 			if($current_node->tps_depart+$arc->tps_parcours < $next_node->tps_depart)
 			{
 				$next_node->tps_depart=$current_node->tps_depart+$arc->tps_parcours;
 				$next_node->previous_node=$current_node;
 
+				$next_node->tps_arrivee = $this->calcul_tps_arrivee($next_node);
 				//calcul coeff astar
 				$next_node->calcul_coeff_astar($next_node);
 			}
 		}
-		else if(in_array($next_node,$this->openlist)==FALSE && in_array($next_node,$this->closelist)==FALSE)
+		else if(in_array($next_node->id,$this->openlist["id_noeud"])==FALSE && in_array($next_node->id,$this->closelist)==FALSE)
 		{
 			$next_node->tps_depart=$current_node->tps_depart+$arc->tps_parcours;
 			$next_node->previous_node=$current_node;
 
 			//calcul coeff astar
+			$next_node->tps_arrivee = $this->calcul_tps_arrivee($next_node);
 			$next_node->calcul_coeff_astar($next_node);
-			$this->openlist[]=$next_node;
+
+			$this->openlist["id_noeud"][]=$next_node->id;
+			$this->openlist["noeud"][]=$next_node;
 		}
 
 	}
@@ -333,9 +340,9 @@ class Astar
 	function new_current()
 	{
 		$j = -1;
-		$min_coeff_astar=$this->openlist[0]->coeff_astar;
+		$min_coeff_astar=INF;
 		
-		foreach($this->openlist as $index => $valeur)
+		foreach($this->openlist["noeud"] as $index => $valeur)
 		{
 			if($valeur->coeff_astar<=$min_coeff_astar)
 			{	
@@ -344,11 +351,16 @@ class Astar
 			}
 		}
 
-		$this->closelist[]=$this->openlist[$j];
-		unset($this->openlist[$j]);
-		$this->openlist = array_values($this->openlist);
+		$this->closelist[]=$this->openlist["id_noeud"][$j];
+		
+		$current_node = $this->openlist["noeud"][$j];
 
-		return end($this->closelist);
+		unset($this->openlist["noeud"][$j]);
+		$this->openlist["noeud"] = array_values($this->openlist["noeud"]);
+		unset($this->openlist["id_noeud"][$j]);
+		$this->openlist["id_noeud"] = array_values($this->openlist["id_noeud"]);
+
+		return $current_node;
 	}
 }
 
