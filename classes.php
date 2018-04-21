@@ -138,20 +138,16 @@ class Graph
 	function find_node_in_graph($id_noeud)
 	{
 		$index=0;
-		$found=-1;
 
 		while($index<count($this->nodes) && $found == -1)
 		{
 			if($this->nodes[$index]->id == $id_noeud)
-				$found = $index;
+				return $this->nodes[$index];
 			
 			$index = $index + 1;
 		}
-
-		if($found == -1)
-			return null;
-		else
-			return $this->nodes[$found];
+		
+		return null;
 	}
 
 	function get_graph_from_bdd(Node $start_node, Node $end_node, $marge,$bdd)
@@ -241,6 +237,7 @@ class Astar
 			$this->graph->find_next_nodes($this->current);
 
 			$neighbors=$this->current->next_nodes;
+			print("<p>id current:".$this->current->id." neighbors:".count($neighbors)." </p>");
 			foreach($neighbors as $index => $valeur)
 			{
 				$this->update_coefficients($this->current,$valeur);
