@@ -96,17 +96,18 @@ else
 		$stats = get_stats($result['astar'], $result['path'], $battery_capacity);
 	}*/
 	//FIN TEST
-
-	for ($n = 1; $n <= 4; $n++)
+	$n = 0;
+	$bestPaths = array();
+	while ($n <= 4 && count($bestPaths) == 0 )
 	{
 		//simplifyStations();
 
 		$bestStations = bestStations($n, $start, $finish, $stations, $bestAmount);
 		$nbPathsStations = count($bestStations);
 		$bestPaths = array();
-
 		//debug
-		/*print("<p> Avec ".$n." stations</p>");
+		/*print("<p> n= ".$n."</p>");
+		print("<p> Avec ".$n." stations</p>");
 		print("<p> nbre d'éléments du tableau bestStations : ".count($bestStations)." </p>");
 		print("<p> Id du tableau bestStations :</p>");
 		foreach ($bestStations as $key1 => $value1) 
@@ -143,6 +144,8 @@ else
 				unset($bestPaths[$i]);
 			}
 		}
+
+		$n++;
 	}
 
 	$bestPaths = array_values($bestPaths);
