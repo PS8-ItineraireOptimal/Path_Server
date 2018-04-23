@@ -39,7 +39,14 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 
 	/*$astar = new Astar($g);*/
 	$nodes_new_graph = array_merge_recursive(array($depart),$bestStations,array($arrivee));
-	$new_graph = new Graph($nodes_new_graph,array());
+	//$new_graph = new Graph($nodes_new_graph,array());
+
+	//TEST
+	$final_path = array();
+	$total_length = 0;
+	$total_travel_time = 0;
+	$remaining_energy = 0; 
+	//FIN TEST
 
 	//debug
 	/*print("<p> Id du tableau node_new_graph :</p>");
@@ -50,8 +57,9 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 	//fin debug
 		
 
-	$id_new_arc = 0;
+	//$id_new_arc = 0;
 	//calcul du chemin
+	$final_path[] = $nodes_new_graph[0];
 	for($i=0; $i<=count($nodes_new_graph)-2;$i++)
 	{
 
@@ -59,9 +67,6 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 			$starting_level = $start_energy;
 		else
 			$starting_level = $battery_capacity;
-		/*print(" <p>");
-		var_dump($nodes_new_graph[$i]);
-		print(" </p>");*/
 
 		$j = $i+1;
 		if($j == count($nodes_new_graph)-1)
@@ -83,9 +88,17 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 
 		if($starting_level - $energy_cons >= $limit_energy)
 		{
-			$new_arc= new Arc($id_new_arc, $nodes_new_graph[$i]->id, $nodes_new_graph[$j]->id, $travel_time, $energy_cons, $length);
+			/*$new_arc= new Arc($id_new_arc, $nodes_new_graph[$i]->id, $nodes_new_graph[$j]->id, $travel_time, $energy_cons, $length);
 			$new_graph->arcs[]=$new_arc;
-			$id_new_arc++;
+			$id_new_arc++;*/
+
+			//TEST
+			$total_length = $total_length + $length;
+			$total_travel_time = $total_travel_time + $travel_time;
+			$remaining_energy = $starting_level - $energy_cons; 
+			$final_path[] = $nodes_new_graph[$j];
+
+			//FIN TEST
 		}
 		else
 			return null;
@@ -93,7 +106,9 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 		
 	}
 
-	if(count($new_graph->arcs) == count($nodes_new_graph)-1)
+	return array('path'=>$final_path,'time'=>$total_travel_time,'length'=>$total_length,'end_energy'=>$remaining_energy);
+
+	/*if(count($new_graph->arcs) == count($nodes_new_graph)-1)
 	{
 
 		$new_astar = new Astar($new_graph);
@@ -105,7 +120,7 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 	{
 		//print("Il n'y a pas d'itinéraire permettant d'arriver à destination avec le niveau de batterie désiré");
 		return null;
-	}
+	}*/
 
 }
 
