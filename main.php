@@ -74,7 +74,7 @@ $stats = array();
 if($result != null)
 {
 	$waypoints = array($start_WGS84,$finish_WGS84);
-	$stats = get_stats($result['astar'], $result['path'], $battery_capacity);
+	$stats = array('distance'=>$bestPaths[0]['length'],'energy'=>$bestPaths[0]['end_energy'],'time'=>$bestPaths[0]['time'],'nbStations'=>$n);
 }
 else
 {
@@ -156,15 +156,15 @@ else
 		// On tri selon le temps
 		usort($bestPaths, function($a, $b)
 		{
-			if ($a['astar']->get_path_time($a['path']) == $b['astar']->get_path_time($b['path']))
+			if ($a['time'] == $b['time'])
 			{
 				return 0;
 			}
-			return ($a['astar']->get_path_time($a['path']) < $b['astar']->get_path_time($b['path'])) ? -1 : 1;
+			return ($a['time'] < $b['time']) ? -1 : 1;
 		});
 
 		$waypoints = array_merge_recursive(array($start_WGS84),get_waypoints($bestPaths[0]['path'],$bdd),array($finish_WGS84));
-		$stats = get_stats($bestPaths[0]['astar'], $bestPaths[0]['path'], $battery_capacity);
+		$stats = array('distance'=>$bestPaths[0]['length'],'energy'=>$bestPaths[0]['end_energy'],'time'=>$bestPaths[0]['time'],'nbStations'=>$n);
 	}
 }
 
