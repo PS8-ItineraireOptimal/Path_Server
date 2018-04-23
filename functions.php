@@ -165,12 +165,12 @@ function get_station_near_node(Node $noeud, $bdd)
 {
 	$req = $bdd -> query ("SELECT lat_station,lon_station
 							FROM nodes
-							WHERE id=".$noeud->id.";");
+							WHERE id_noeud=".$noeud->id.";");
 
-	$res=fetch_assoc($req);
+	$res = $req->fetch_assoc();
 
-	$noeud->x = $res['lon_station'];
-	$noeud->y = $res['lat_station'];
+	$noeud->y = $res['lon_station'];
+	$noeud->x = $res['lat_station'];
 
 	return $noeud;
 }
