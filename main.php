@@ -62,11 +62,11 @@ print("<p> nombre de noeuds ".count($g->nodes)."</p>");*/
 //////////////////////////////////////////////////////
 // Calcul avec 0 stations
 //debug
-/*print("<p> <h1>Sans passer par des stations</h1></p>");*/
+//print("<p> <h1>Sans passer par des stations</h1></p>");
 $result = null;
 //fin debug
 
-$result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $astar);
+//$result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $astar);
 
 $waypoints = array();
 $stats = array();
@@ -79,7 +79,7 @@ if($result != null)
 else
 {
 	//debug
-	/*print("<p> <h1>Passer par des stations</h1></p>");*/
+	//print("<p> <h1>Passer par des stations</h1></p>");
 	//fin debug
 
 	$stations = generateStations($start, $finish, $delta, $bdd);
@@ -160,7 +160,7 @@ else
 			return ($a['astar']->get_path_time($a['path']) < $b['astar']->get_path_time($b['path'])) ? -1 : 1;
 		});
 
-		$waypoints = get_waypoints($bestPaths[0]['path']);
+		$waypoints = array_merge_recursive(array($start_WGS84),get_waypoints($bestPaths[0]['path']),array($finish_WGS84));
 		$stats = get_stats($bestPaths[0]['astar'], $bestPaths[0]['path'], $battery_capacity);
 	}
 }

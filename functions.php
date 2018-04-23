@@ -67,7 +67,7 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 		if($j == count($nodes_new_graph)-1)
 			$limit_energy = $end_energy;
 		else
-			$limit_energy = 5.0/$battery_capacity;
+			$limit_energy = 0.05*$battery_capacity;
 
 		/*print(" <p>");
 		var_dump($nodes_new_graph[$j]);
@@ -87,11 +87,13 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 			$new_graph->arcs[]=$new_arc;
 			$id_new_arc++;
 		}
+		else
+			return null;
 
 		
 	}
 
-	if(count($new_graph) == count($nodes_new_graph)-1)
+	if(count($new_graph->arcs) == count($nodes_new_graph)-1)
 	{
 
 		$new_astar = new Astar($new_graph);
@@ -118,13 +120,14 @@ function get_car_battery_capacity($car_model,$bdd)
 }
 
 //Renvoie les coordonnées en WGS84 des stations de l'itinéraire
-function get_waypoints($path)
+function get_waypoints($path,$bdd)
 {
 	$waypoints = array();
 
 	for($i=1;$i<count($path)-1;$i++) 
 	{
 		//projection de L93 vers WGS84
+		$path[$i]=get_station_near_node($path[$i],$bdd);
 	 	$projection = from_L93_to_WGS($path[$i]->x,$path[$i]->y);
 		$lon = $projection->toArray()[0];
 		$lat = $projection->toArray()[1];
@@ -156,6 +159,20 @@ function get_stats(astar $astar, $path, $battery_capacity)
 	$stats['energy'] = $energy;
 
 	return $stats;
+}
+
+function get_station_near_node(Node $noeud, $bdd)
+{
+	$req = $bdd -> query ("SELECT lat_station,lon_station
+							FROM nodes
+							WHERE id=".$noeud->id.";");
+
+	$res=fetch_assoc($req);
+
+	$noeud->x = $res['lon_station'];
+	$noeud->y = $res['lat_station'];
+
+	return $noeud;
 }
 
 ?>
