@@ -16,7 +16,7 @@ include_once('change_projection.php');
 $bdd = get_bdd();
 
 $bestAmount = 3;
-$delta = 10000; // 10km
+$delta = 6000; // 10km
 
 // Projection de WGS84 vers Lambert93
 $start_WGS84=array("lat"=>$_POST['ilat'],"lng"=>$_POST['ilng']);
@@ -160,7 +160,7 @@ else
 			return ($a['astar']->get_path_time($a['path']) < $b['astar']->get_path_time($b['path'])) ? -1 : 1;
 		});
 
-		$waypoints = array_merge_recursive(array($start_WGS84),get_waypoints($bestPaths[0]['path']),array($finish_WGS84));
+		$waypoints = array_merge_recursive(array($start_WGS84),get_waypoints($bestPaths[0]['path'],$bdd),array($finish_WGS84));
 		$stats = get_stats($bestPaths[0]['astar'], $bestPaths[0]['path'], $battery_capacity);
 	}
 }
