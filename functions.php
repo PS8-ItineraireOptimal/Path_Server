@@ -34,48 +34,64 @@ function findNearestNode($x, $y, $bdd, $delta)
 
 
 //A commenter par Yves
-function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$end_energy,$battery_capacity,Graph $g,$bestStations=array())
+function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$end_energy,$battery_capacity,Astar $astar,$bestStations=array())
 {
-	$astar = new Astar($g);
+
+	/*$astar = new Astar($g);*/
 	$nodes_new_graph = array_merge_recursive(array($depart),$bestStations,array($arrivee));
 	$new_graph = new Graph($nodes_new_graph,array());
+
+	//debug
+	/*print("<p> Id du tableau node_new_graph :</p>");
+	foreach ($nodes_new_graph as $key => $value) 
+	{
+		print($value->id." -> ");
+	}*/
+	//fin debug
 		
+
 	$id_new_arc = 0;
 	//calcul du chemin
 	for($i=0; $i<=count($nodes_new_graph)-2;$i++)
 	{
+
 		if($i == 0)
 			$starting_level = $start_energy;
 		else
 			$starting_level = $battery_capacity;
+		/*print(" <p>");
+		var_dump($nodes_new_graph[$i]);
+		print(" </p>");*/
 
-		for ($j=$i+1; $j <= count($nodes_new_graph)-1 ; $j++) 
-		{ 
+		$j = $i+1;
+		if($j == count($nodes_new_graph)-1)
+			$limit_energy = $end_energy;
+		else
+			$limit_energy = 5.0/$battery_capacity;
 
-			if($j == count($nodes_new_graph)-1)
-				$limit_energy = $end_energy;
-			else
-				$limit_energy = 5.0/$battery_capacity;
+		/*print(" <p>");
+		var_dump($nodes_new_graph[$j]);
+		print(" </p>");*/
 
-			$path = $astar->get_best_path($nodes_new_graph[$i],$nodes_new_graph[$j]);
-			
-			$energy_cons = $astar->get_path_energy($path);
+		$path = $astar->get_best_path($nodes_new_graph[$i],$nodes_new_graph[$j]);
+		
+		$energy_cons = $astar->get_path_energy($path);
 
-			$length = $astar->get_path_length($path);
+		$length = $astar->get_path_length($path);
 
-			$travel_time = $astar->get_path_time($path);
+		$travel_time = $astar->get_path_time($path);
 
-			if($starting_level - $energy_cons >= $limit_energy)
-			{
-				$new_arc= new Arc($id_new_arc, $nodes_new_graph[$i]->id, $nodes_new_graph[$j]->id, $travel_time, $energy_cons, $length);
-				$new_graph->arcs[]=$new_arc;
-				$id_new_arc++;
-			}
-
+		if($starting_level - $energy_cons >= $limit_energy)
+		{
+			$new_arc= new Arc($id_new_arc, $nodes_new_graph[$i]->id, $nodes_new_graph[$j]->id, $travel_time, $energy_cons, $length);
+			$new_graph->arcs[]=$new_arc;
+			$id_new_arc++;
 		}
+
+		
 	}
 
-	if(($new_graph->find_arc($arrivee->id) != null)  && ($new_graph->find_arc($depart->id) != null))
+	if(count($new_graph) == count($nodes_new_graph)-1)
 	{
 
 		$new_astar = new Astar($new_graph);
@@ -85,6 +101,7 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 	}
 	else
 	{
+		//print("Il n'y a pas d'itinéraire permettant d'arriver à destination avec le niveau de batterie désiré");
 		return null;
 	}
 
@@ -100,14 +117,15 @@ function get_car_battery_capacity($car_model,$bdd)
 	return $res['Battery'];
 }
 
+//Renvoie les coordonnées en WGS84 des stations de l'itinéraire
 function get_waypoints($path)
 {
 	$waypoints = array();
 
-	foreach ($path as $key => $value) 
+	for($i=1;$i<count($path)-1;$i++) 
 	{
 		//projection de L93 vers WGS84
-	 	$projection = from_L93_to_WGS($value->x,$value->y);
+	 	$projection = from_L93_to_WGS($path[$i]->x,$path[$i]->y);
 		$lon = $projection->toArray()[0];
 		$lat = $projection->toArray()[1];
 

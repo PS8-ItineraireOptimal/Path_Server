@@ -136,6 +136,7 @@ function bestStations($n, $i, $j, &$stations, $wantedAmount)
 						$temp_path[1] = $stations[$v]->id;
 						$temp_path[2] = $stations[$w]->id;
 						$temp_paths[$amount++] = $temp_path;
+
 					}
 				}
 			}

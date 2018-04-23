@@ -31,7 +31,7 @@ if ($start != null || $finish != null)
 	
 	echo 'Stations found : ' . count($stations) . '<br/>';
 
-	$n = 4;
+	$n = 2;
 	$bestStations = bestStations($n, $start, $finish, $stations, $bestAmount);
 	$nbPathsStations = count($bestStations);
 	for ($i = 0; $i < $nbPathsStations; $i++)
