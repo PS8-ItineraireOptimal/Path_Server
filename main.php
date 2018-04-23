@@ -66,7 +66,7 @@ print("<p> nombre de noeuds ".count($g->nodes)."</p>");*/
 $result = null;
 //fin debug
 
-//$result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $astar);
+$result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $astar);
 
 $waypoints = array();
 $stats = array();
