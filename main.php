@@ -15,9 +15,6 @@ include_once('change_projection.php');
 
 $bdd = get_bdd();
 
-$bestAmount = 3;
-$delta = 6000; // 10km
-
 // Projection de WGS84 vers Lambert93
 $start_WGS84=array("lat"=>$_POST['ilat'],"lng"=>$_POST['ilng']);
 $project_start_node = from_WGS_to_L93($_POST['ilng'],$_POST['ilat']);
@@ -29,10 +26,6 @@ $project_finish_node = from_WGS_to_L93($_POST['jlng'],$_POST['jlat']);
 $finish_x = $project_finish_node->toArray()[0];
 $finish_y = $project_finish_node->toArray()[1];
 
-// trouver les noeuds du graph les plus proches du départ et de l'arrivée
-$start = findNearestNode($start_x, $start_y, $bdd, $delta);
-$finish = findNearestNode($finish_x, $finish_y, $bdd, $delta);
-
 //récuperer la  capacité totale de la batterie du véhicule dans la BDD
 $car_model=$_POST['VE'];
 $battery_capacity=get_car_battery_capacity($car_model,$bdd);
@@ -41,7 +34,15 @@ $battery_capacity=get_car_battery_capacity($car_model,$bdd);
 $Ei = ($_POST['startEnergyInName']*$battery_capacity)/100.0;
 $Ej = ($_POST['endEnergyInName']*$battery_capacity)/100.0;
 
+
+$delta = 10000; // 10km
+
+// trouver les noeuds du graph les plus proches du départ et de l'arrivée
+$start = findNearestNode($start_x, $start_y, $bdd, $delta);
+$finish = findNearestNode($finish_x, $finish_y, $bdd, $delta);
+
 //Récupérer les noeuds et arcs du graphe dans la BDD
+$bestAmount = 3;
 $g = new Graph();
 $g->get_graph_from_bdd($start,$finish,$delta,$bdd);
 $astar = new Astar($g);
@@ -61,41 +62,37 @@ print("<p> nombre de noeuds ".count($g->nodes)."</p>");*/
 //
 //////////////////////////////////////////////////////
 // Calcul avec 0 stations
+
 //debug
 //print("<p> <h1>Sans passer par des stations</h1></p>");
-$result = null;
 //fin debug
 
-//$result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $astar);
-
+$result = null;
 $waypoints = array();
 $stats = array();
+
+
+$result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity);
+
+
 
 if($result != null)
 {
 	$waypoints = array($start_WGS84,$finish_WGS84);
-	$stats = array('distance'=>$bestPaths[0]['length'],'energy'=>$bestPaths[0]['end_energy'],'time'=>$bestPaths[0]['time'],'nbStations'=>$n);
+	$stats = array('distance'=>$result['length'],'energy'=>$result['end_energy'],'time'=>$result['time'],'nbStations'=>0);
 }
 else
 {
-	//debug
+	//uncomment the code below when debuging
 	//print("<p> <h1>Passer par des stations</h1></p>");
 	//fin debug
 
 	$stations = generateStations($start, $finish, $delta, $bdd);
 	
-	//debug
+	//uncomment the code below when debuging
 	/*print("<p> Nombre de stations entre le depart et l'arrivée ".count($stations)." </p>");*/
 	//fin debug
 
-	//TEST
-	/*$result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $astar,$stations);
-	if($result != null)
-	{
-		$waypoints = array($start_WGS84,get_waypoints($result['path']),$finish_WGS84);
-		$stats = get_stats($result['astar'], $result['path'], $battery_capacity);
-	}*/
-	//FIN TEST
 	$n = 0;
 	$bestPaths = array();
 	while ($n <= 4 && count($bestPaths) == 0 )
@@ -105,7 +102,8 @@ else
 		$bestStations = bestStations($n, $start, $finish, $stations, $bestAmount);
 		$nbPathsStations = count($bestStations);
 		$bestPaths = array();
-		//debug
+
+		//uncomment the code below when debuging
 		/*print("<p> n= ".$n."</p>");
 		print("<p> Avec ".$n." stations</p>");
 		print("<p> nbre d'éléments du tableau bestStations : ".count($bestStations)." </p>");
@@ -138,7 +136,7 @@ else
 			}*/
 			//fin debug
 
-			$bestPaths[$i] = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $astar, $nodeStations);
+			$bestPaths[$i] = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $nodeStations);
 			if ($bestPaths[$i] == null)
 			{
 				unset($bestPaths[$i]);
@@ -153,7 +151,7 @@ else
 
 	if ($nbValidPaths > 0)
 	{
-		// On tri selon le temps
+		// On tri les chemins par ordre de travel time croissant
 		usort($bestPaths, function($a, $b)
 		{
 			if ($a['time'] == $b['time'])

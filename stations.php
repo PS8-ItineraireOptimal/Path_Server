@@ -170,7 +170,7 @@ function bestStations($n, $i, $j, &$stations, $wantedAmount)
 	}
 	else
 	{
-		// Not possible case
+		// $n = 5 ==> Case not taken into account
 		return null;
 	}
 	

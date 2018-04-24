@@ -17,13 +17,6 @@ function distanceNN($node_i, $node_j)
 	return sqrt($dx * $dx + $dy * $dy);
 }
 
-// Distance between a node and a couple of coordinates
-function distanceNC($node, $x, $y)
-{
-	return 0;
-	return sqrt($node->x * $x + $node->y * $y);
-}
-
 // Distance between two couples of coordinates
 function distanceCC($x1, $y1, $x2, $y2)
 {
