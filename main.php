@@ -164,6 +164,14 @@ else
 		$waypoints = array_merge_recursive(array($start_WGS84),get_waypoints($bestPaths[0]['path'],$bdd),array($finish_WGS84));
 		$stats = array('distance'=>$bestPaths[0]['length'],'energy'=>$bestPaths[0]['end_energy'],'time'=>$bestPaths[0]['time'],'nbStations'=>$n);
 	}
+	else
+	{
+		print("<p>THERE IS NO PATH MATCHING WITH THE GIVEN PARAMETERS. <br/> THIS CAN BE DUE TO: 
+			<ul>
+				<li>A too low battery capacity, you should use an other car XD</li>
+				<li>A too small area of calculations, you should increase the value of the variable delta at line 38 in main.php</li>
+			</ul></P>");
+	}
 }
 
 
