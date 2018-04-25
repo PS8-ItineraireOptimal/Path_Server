@@ -4,6 +4,7 @@ include_once("classes.php");
 include_once("geometry.php");
 include_once ('change_projection.php');
 
+// Find the nearest given a position
 function findNearestNode($x, $y, $bdd, $delta)
 {
 	$node = null;

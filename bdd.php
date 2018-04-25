@@ -26,6 +26,7 @@ if ($mysqli->connect_errno)
 	echo 'error bdd';
 }
 
+// Get the database from anywhere
 function get_bdd()
 {
 	global $mysqli;
