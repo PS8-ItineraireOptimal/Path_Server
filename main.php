@@ -93,10 +93,12 @@ else
 	/*print("<p> Nombre de stations entre le depart et l'arrivée ".count($stations)." </p>");*/
 	//fin debug
 
-	$n = 0;
+	$n = 1;
 	$bestPaths = array();
-	while ($n <= 4 && count($bestPaths) == 0 )
+	while ($n <= 4 && count($bestPaths) == 0)
 	{
+		// Should not be done for small area
+		// Only large area
 		//simplifyStations();
 
 		$bestStations = bestStations($n, $start, $finish, $stations, $bestAmount);
@@ -166,11 +168,7 @@ else
 	}
 	else
 	{
-		print("<p>THERE IS NO PATH MATCHING WITH THE GIVEN PARAMETERS. <br/> THIS CAN BE DUE TO: 
-			<ul>
-				<li>A too low battery capacity, you should use an other car XD</li>
-				<li>A too small area of calculations, you should increase the value of the variable delta at line 38 in main.php</li>
-			</ul></P>");
+		print("<p>THERE IS NO PATH MATCHING WITH THE GIVEN PARAMETERS.</p>");
 	}
 }
 
