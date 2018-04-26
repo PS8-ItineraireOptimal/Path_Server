@@ -43,36 +43,36 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 	$total_length = 0;
 	$total_travel_time = 0;
 	$remaining_energy = 0; 
-
-
-	//debug
-	/*print("<p> Id du tableau node_new_graph :</p>");
-	foreach ($nodes_path as $key => $value) 
-	{
-		print($value->id." -> ");
-	}*/
-	//fin debug
 		
-	//ajout du depart au chemin finale
+	//ajout du depart au chemin final
 	$final_path[] = $nodes_path[0];
 
 	//calcul du chemin allant du depart à l'arrivée et passant par les stations du tableau 
 	//$bestStations
 	for($i=0; $i<=count($nodes_path)-2;$i++)
 	{
+		//A chaque itération de la boucle, on calcul le chemin le plus rapide entre les noeuds nodes_path[$i] et nodes_path[$j]
 
+		//Si nodes_path[$i] = noeud de départ de l'itinéraire
+		//L'energie de départ est celle renseignée par l'utilisateur dans l'appli web
 		if($i == 0)
 			$starting_level = $start_energy;
+		//Si nodes_path[$i] = une station
+		//L'energie de départ est la capacité totale de la batterie (On considère que le véhicule recharge toujours au maximum)
 		else
 			$starting_level = $battery_capacity;
 
 		$j = $i+1;
+		//Si nodes_path[$j] = noeud d'arrivée de l'itinéraire
+		//L'energie minimum d'arrivée est celle renseignée par l'utilisateur dans l'appli web
 		if($j == count($nodes_path)-1)
 			$limit_energy = $end_energy;
+		//Si nodes_path[$j] = une station
+		//L'energie minimum d'arrivée est 5% de la capacité totale de la batterie. On fait en sorte que le véhicule arrive à la station avec au moins 5% de batterie
 		else
 			$limit_energy = 0.05*$battery_capacity;
 
-
+		//Calcul des statistiques du tronçon (i,j)
 		$path = $astar->get_best_path($nodes_path[$i],$nodes_path[$j]);
 
 		$energy_cons = $astar->get_path_energy($path);
@@ -83,6 +83,8 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 
 		if($starting_level - $energy_cons >= $limit_energy)
 		{
+			//Si le véhicule arrive au noeud j avec une énergie supérieure à l'energie limite
+			//On ajoute les statistiques du tronçon (i,j) à celle du chemin final 
 			$total_length = $total_length + $length;
 			$total_travel_time = $total_travel_time + $travel_time;
 			$remaining_energy = (($starting_level - $energy_cons)/$battery_capacity)*100; 
@@ -90,11 +92,13 @@ function best_path_through_stations(Node $depart, Node $arrivee,$start_energy,$e
 
 		}
 		else
+			//Sinon, le chemin n'est pas réalisable par le véhicule
 			return null;
 
 		
 	}
 
+	//Arrondir la valeur de l'énergie restante et du travel time
 	$total_travel_time = round($total_travel_time,4);
 	$remaining_energy = round($remaining_energy,0,PHP_ROUND_HALF_DOWN);
 	return array('path'=>$final_path,'time'=>$total_travel_time,'length'=>$total_length,'end_energy'=>$remaining_energy);

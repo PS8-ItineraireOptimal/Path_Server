@@ -1,6 +1,3 @@
-
-
-    
 <?php 
 
 // Use a PSR-4 autoloader for the `proj4php` root namespace.

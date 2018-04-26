@@ -15,7 +15,7 @@ include_once('change_projection.php');
 
 $bdd = get_bdd();
 
-// Projection de WGS84 vers Lambert93
+// Projection de WGS84 vers Lambert93 des coordonnées des adresses de départ et d'arrivée
 $start_WGS84=array("lat"=>$_POST['ilat'],"lng"=>$_POST['ilng']);
 $project_start_node = from_WGS_to_L93($_POST['ilng'],$_POST['ilat']);
 $start_x = $project_start_node->toArray()[0];
@@ -35,9 +35,9 @@ $Ei = ($_POST['startEnergyInName']*$battery_capacity)/100.0;
 $Ej = ($_POST['endEnergyInName']*$battery_capacity)/100.0;
 
 
-$delta = 10000; // 10km
+$delta = 20000; // 20km
 
-// trouver les noeuds du graph les plus proches du départ et de l'arrivée
+// trouver les noeuds du graphe les plus proches du départ et de l'arrivée
 $start = findNearestNode($start_x, $start_y, $bdd, $delta);
 $finish = findNearestNode($finish_x, $finish_y, $bdd, $delta);
 
@@ -46,35 +46,19 @@ $bestAmount = 3;
 $g = new Graph();
 $g->get_graph_from_bdd($start,$finish,$delta,$bdd);
 $astar = new Astar($g);
-//debug
-/*print("<br/><br/><br/><br/>");
-if(($g->find_node_in_graph($start->id) == null) || ($g->find_node_in_graph($finish->id) == null))
-{
-	print("<p> Le départ ou l'arrivée ne sont pas dans le graphe</p>");
-}
-print("<p> id depart: ".$start->id." id arrivee:".$finish->id."</p>");
-print("<p> nombre de noeuds ".count($g->nodes)."</p>");*/
-//fin debug
 
 //////////////////////////////////////////////////////
 //
 // Itinéraire
 //
 //////////////////////////////////////////////////////
-// Calcul avec 0 stations
-
-//debug
-//print("<p> <h1>Sans passer par des stations</h1></p>");
-//fin debug
 
 $result = null;
-$waypoints = array();
-$stats = array();
+$waypoints = array();//Coordonnées des étapes du trajet
+$stats = array();//Statistiques du trajet
 
-
+// Calcul avec 0 stations
 $result = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity);
-
-
 
 if($result != null)
 {
@@ -83,16 +67,9 @@ if($result != null)
 }
 else
 {
-	//uncomment the code below when debuging
-	//print("<p> <h1>Passer par des stations</h1></p>");
-	//fin debug
-
+	//récupérer les stations de la zone de calcul dans la BDD
 	$stations = generateStations($start, $finish, $delta, $bdd);
 	
-	//uncomment the code below when debuging
-	/*print("<p> Nombre de stations entre le depart et l'arrivée ".count($stations)." </p>");*/
-	//fin debug
-
 	$n = 1;
 	$bestPaths = array();
 	while ($n <= 4 && count($bestPaths) == 0)
@@ -101,24 +78,10 @@ else
 		// Only large area
 		//simplifyStations();
 
+		//Recherche des n meilleures stations
 		$bestStations = bestStations($n, $start, $finish, $stations, $bestAmount);
 		$nbPathsStations = count($bestStations);
 		$bestPaths = array();
-
-		//uncomment the code below when debuging
-		/*print("<p> n= ".$n."</p>");
-		print("<p> Avec ".$n." stations</p>");
-		print("<p> nbre d'éléments du tableau bestStations : ".count($bestStations)." </p>");
-		print("<p> Id du tableau bestStations :</p>");
-		foreach ($bestStations as $key1 => $value1) 
-		{
-			print("<p>");
-			foreach ($bestStations[$key1] as $key2 => $value2) {
-				print($value2." -> ");
-			}
-			print("</p>");
-		}*/
-		//fin debug
 
 		// On calcule tous les chemins
 		for ($i = 0; $i < $nbPathsStations; $i++)
@@ -126,21 +89,17 @@ else
 			$nodeStations=array();
 			foreach ($bestStations[$i] as $key => $value) 
 			{
+				//Les éléments du tableau $bestStations[$i] sont des id de stations
+				//On récupère les noeuds du graphe correspondant à ces id
+				//et on les stocke dans le tableau $nodeStations
 				$nodeStations[] = $g->find_node_in_graph($value);
 			}
-			
-			//debug
-			/*print("<p> count du tableau nodeStations :".count($nodeStations)."</p>");
-			print("<p> Id du tableau nodeStations :</p>");
-			foreach ($nodeStations as $key => $value) 
-			{
-				print($value->id." -> ");
-			}*/
-			//fin debug
 
+			//Calcul du chemin optimal passant par les stations du tableau nodeStations
 			$bestPaths[$i] = best_path_through_stations($start, $finish, $Ei, $Ej, $battery_capacity, $nodeStations);
 			if ($bestPaths[$i] == null)
 			{
+				//Les chemins impossibles à effectuer par le véhicule sont supprimés du tableau bestPaths
 				unset($bestPaths[$i]);
 			}
 		}
@@ -163,12 +122,15 @@ else
 			return ($a['time'] < $b['time']) ? -1 : 1;
 		});
 
+		//Waypoints contient les coordonnées WGS84 de toutes les étapes du trajet.
+		//Stats contient les données du trajet.
+		//waypoints et stats sont envoyés à la page Web result.php dans laquelle sont affichés l'itinéraire et ses statistiques
 		$waypoints = array_merge_recursive(array($start_WGS84),get_waypoints($bestPaths[0]['path'],$bdd),array($finish_WGS84));
 		$stats = array('distance'=>$bestPaths[0]['length'],'energy'=>$bestPaths[0]['end_energy'],'time'=>$bestPaths[0]['time'],'nbStations'=>$n);
 	}
 	else
 	{
-		print("<p>THERE IS NO PATH MATCHING WITH THE GIVEN PARAMETERS.</p>");
+		print("<p><br/><br/><br/><br/>THERE IS NO PATH MATCHING WITH THE GIVEN PARAMETERS.</p>");
 	}
 }
 

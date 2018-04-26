@@ -239,16 +239,6 @@ class Astar
 			$this->graph->find_next_nodes($this->current);
 			$neighbors=$this->current->next_nodes;
 
-			//uncomment the code below when debuging
-			/*print("<p> <h2> id current:".$this->current->id." neighbors:".count($neighbors)." </h2> </p>");
-			print("<p> id neighbors :");
-			foreach($neighbors as $index => $valeur)
-			{
-				print($valeur->id." ");
-			}
-			print("</p>");*/
-			//fin debug
-
 			//We update the coefficients of each neighbor
 			foreach($neighbors as $index => $valeur)
 			{
@@ -258,10 +248,6 @@ class Astar
 			//Look for a new current node
 			$this->current=$this->new_current();
 		}
-
-		//uncomment the code below when debuging
-		/*print("<p> <h2> arrivee:".$this->current->id."</h2></p>");*/
-		//fin debug
 
 		//initialize final-steps
 		$this->path_steps=array();
@@ -328,16 +314,10 @@ class Astar
 		//If next_node belongs to the openlist and isn't in the closelist
 		if(in_array($next_node->id,$this->openlist["id_noeud"])==TRUE && in_array($next_node->id,$this->closelist)==FALSE)
 		{
-			//uncomment the code below when debuging
-			/*print("<p> update coefficient if</p>");*/
-			//fin debug
 
 			//if there is faster path to reach next_node, we update its coefficients
 			if($current_node->tps_depart+$arc->tps_parcours < $next_node->tps_depart)
 			{
-				//uncomment the code below when debuging
-				/*print("<p> update coefficient if dans le if</p>");*/
-				//fin debug
 
 				$next_node->tps_depart = $current_node->tps_depart+$arc->tps_parcours;
 				$next_node->previous_node = $current_node;
@@ -353,10 +333,6 @@ class Astar
 		//if next_node doesn't belong to nor the openlist, nor the closelist, we update its coefficients and add it to the openlist
 		else if(in_array($next_node->id,$this->openlist["id_noeud"])==FALSE && in_array($next_node->id,$this->closelist)==FALSE)
 		{
-			//uncomment the code below when debuging
-			/*print("<p> update coefficient else if</p>");*/
-			//fin debug
-
 			$next_node->tps_depart=$current_node->tps_depart+$arc->tps_parcours;
 			$next_node->previous_node=$current_node;
 
@@ -385,11 +361,6 @@ class Astar
 				$j=$index;
 			}
 		}
-
-		//uncomment the code below when debuging
-		/*print("<p> taille openlist :".count($this->openlist["noeud"])."</p>");
-		print("<p> min coeff_astar ".$min_coeff_astar."</p>");
-		*///findebug
 
 		//the new current node's ID is added to the closelist
 		$this->closelist[]=$this->openlist["id_noeud"][$j];
